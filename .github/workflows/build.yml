@@ -24,15 +24,17 @@ jobs:
         sudo gem uninstall cocoapods -a -I || true
         sudo gem install cocoapods -v 1.11.3
         
-    - name: Clean and setup iOS
-      working-directory: ./PPAPIKey_Mobile_Project/ios
-      run: |
-        rm -f Podfile.lock
-        pod install --repo-update
-        
     - name: Install dependencies
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
+        
+    - name: Generate Flutter config
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: flutter packages get
+        
+    - name: Setup iOS
+      working-directory: ./PPAPIKey_Mobile_Project/ios
+      run: pod install --repo-update
         
     - name: Build IPA
       working-directory: ./PPAPIKey_Mobile_Project
