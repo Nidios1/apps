@@ -28,6 +28,7 @@ jobs:
       run: |
         flutter clean
         flutter pub get
+        flutter packages get
         
     - name: Install iOS dependencies
       working-directory: ./PPAPIKey_Mobile_Project
