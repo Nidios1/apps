@@ -23,13 +23,22 @@ jobs:
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
         
-    - name: Build IPA
+    - name: Build iOS App Bundle
       working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter build ipa --debug --no-codesign
+      run: flutter build ios --debug --no-codesign
+        
+    - name: Create IPA from App Bundle
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: |
+        cd build/ios/iphoneos
+        mkdir -p Payload
+        cp -r Runner.app Payload/
+        zip -r ../../../ppapikey.ipa Payload/
+        rm -rf Payload
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
         name: ppapikey-ipa
-        path: PPAPIKey_Mobile_Project/build/ios/ipa/*.ipa
+        path: PPAPIKey_Mobile_Project/ppapikey.ipa
         retention-days: 30
