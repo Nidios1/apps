@@ -1,4 +1,4 @@
-name: Build IPA for eSign
+name: Build iOS App
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '3.16.0'
+        flutter-version: '3.24.0'
         cache: true
         
     - name: Install dependencies
@@ -29,23 +29,25 @@ jobs:
         flutter clean
         flutter pub get
         
-    - name: Build iOS Simulator (No Code Sign Required)
+    - name: Install iOS dependencies
       working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter build ios --debug --simulator
+      run: |
+        cd ios
+        pod install --repo-update
         
-    - name: Create IPA from Simulator Build
+    - name: Build iOS App (Simulator)
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: flutter build ios --debug --simulator --no-codesign
+        
+    - name: Create App Bundle
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
         cd build/ios/iphonesimulator
-        mkdir -p Payload
-        cp -r Runner.app Payload/
-        zip -r ../../../ppapikey.ipa Payload/
-        rm -rf Payload
-        echo "IPA created successfully from simulator build"
+        tar -czf ../../../ppapikey-ios-simulator.tar.gz Runner.app
         
-    - name: Upload IPA
+    - name: Upload iOS App
       uses: actions/upload-artifact@v4
       with:
-        name: ppapikey-ipa
-        path: PPAPIKey_Mobile_Project/ppapikey.ipa
+        name: ppapikey-ios-simulator
+        path: PPAPIKey_Mobile_Project/ppapikey-ios-simulator.tar.gz
         retention-days: 30
