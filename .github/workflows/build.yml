@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Build IPA for eSign
 
 on:
   push:
@@ -23,19 +23,13 @@ jobs:
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
         
-    - name: Build iOS App
+    - name: Build IPA
       working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter build ios --debug --no-codesign
+      run: flutter build ipa --debug --no-codesign
         
-    - name: Create App Bundle
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        cd build/ios/iphoneos
-        tar -czf ../../../ppapikey-ios.tar.gz Runner.app
-        
-    - name: Upload iOS App
+    - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
-        name: ppapikey-ios
-        path: PPAPIKey_Mobile_Project/ppapikey-ios.tar.gz
+        name: ppapikey-ipa
+        path: PPAPIKey_Mobile_Project/build/ios/ipa/*.ipa
         retention-days: 30
