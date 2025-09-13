@@ -19,6 +19,11 @@ jobs:
         flutter-version: '3.16.0'
         cache: true
         
+    - name: Install CocoaPods 1.11.3
+      run: |
+        sudo gem uninstall cocoapods -a -I || true
+        sudo gem install cocoapods -v 1.11.3
+        
     - name: Install dependencies
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
