@@ -1,10 +1,12 @@
-name: Minimal Build Test
+name: Build IPA
 
 on:
+  push:
+    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
-  test:
+  build:
     runs-on: macos-latest
     
     steps:
@@ -16,19 +18,17 @@ jobs:
       with:
         flutter-version: '3.16.0'
         
-    - name: Test Project
-      run: |
-        echo "Testing project structure..."
-        cd PPAPIKey_Mobile_Project
-        echo "Directory: $(pwd)"
-        echo "Contents:"
-        ls -la
-        echo ""
-        echo "pubspec.yaml exists:"
-        test -f pubspec.yaml && echo "✅ YES" || echo "❌ NO"
-        echo ""
-        echo "Running flutter pub get..."
-        flutter pub get
-        echo ""
-        echo "Running flutter doctor..."
-        flutter doctor
+    - name: Install dependencies
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: flutter pub get
+        
+    - name: Build IPA
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: flutter build ipa --debug --no-codesign
+        
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: ppapikey-ipa
+        path: PPAPIKey_Mobile_Project/build/ios/ipa/*.ipa
+        retention-days: 30
