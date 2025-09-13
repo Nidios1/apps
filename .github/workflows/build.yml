@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Build Flutter App
 
 on:
   push:
@@ -23,31 +23,17 @@ jobs:
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
         
-    - name: Clean and prepare
+    - name: Analyze code
       working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        flutter clean
-        flutter pub get
+      run: flutter analyze
         
-    - name: Install iOS dependencies
+    - name: Build Web App
       working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        cd ios
-        pod install --repo-update
+      run: flutter build web
         
-    - name: Build iOS App (Simulator)
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter build ios --debug --simulator --no-codesign
-        
-    - name: Create App Bundle
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        cd build/ios/iphonesimulator
-        tar -czf ../../../ppapikey-ios-simulator.tar.gz Runner.app
-        
-    - name: Upload iOS App
+    - name: Upload Web App
       uses: actions/upload-artifact@v4
       with:
-        name: ppapikey-ios-simulator
-        path: PPAPIKey_Mobile_Project/ppapikey-ios-simulator.tar.gz
+        name: ppapikey-web
+        path: PPAPIKey_Mobile_Project/build/web/
         retention-days: 30
