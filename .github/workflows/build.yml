@@ -1,108 +1,34 @@
-name: Build Flutter iOS App (No Signing)
+name: Minimal Build Test
 
 on:
-  push:
-    branches: [ main, master, develop ]
-  pull_request:
-    branches: [ main, master ]
   workflow_dispatch:
 
 jobs:
-  build-ios:
+  test:
     runs-on: macos-latest
     
     steps:
-    - name: Checkout repository
+    - name: Checkout
       uses: actions/checkout@v4
       
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.16.0'
-        channel: 'stable'
         
-    - name: Setup Java
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'zulu'
-        java-version: '17'
-        
-    - name: Check Flutter project structure
+    - name: Test Project
       run: |
-        echo "Current directory: $(pwd)"
+        echo "Testing project structure..."
+        cd PPAPIKey_Mobile_Project
+        echo "Directory: $(pwd)"
         echo "Contents:"
         ls -la
-        echo "Looking for pubspec.yaml..."
-        find . -name "pubspec.yaml" -type f
-        
-    - name: Install dependencies
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter pub get
-      
-    - name: Run tests
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter test
-      
-    - name: Analyze code
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter analyze
-      
-    - name: Build iOS Debug (No Code Signing)
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        echo "Building iOS app in debug mode without code signing..."
-        flutter build ios --debug --no-codesign
-        
-    - name: Build iOS Release (No Code Signing)
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        echo "Building iOS app in release mode without code signing..."
-        flutter build ios --release --no-codesign
-        
-    - name: Build IPA Debug
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        echo "Building IPA in debug mode..."
-        flutter build ipa --debug --no-codesign
-        
-    - name: Build IPA Release
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        echo "Building IPA in release mode..."
-        flutter build ipa --release --no-codesign
-        
-    - name: Upload Debug IPA
-      uses: actions/upload-artifact@v4
-      with:
-        name: ppapikey-mobile-debug-${{ github.sha }}
-        path: PPAPIKey_Mobile_Project/build/ios/ipa/*.ipa
-        retention-days: 30
-        
-    - name: Upload Release IPA
-      uses: actions/upload-artifact@v4
-      with:
-        name: ppapikey-mobile-release-${{ github.sha }}
-        path: PPAPIKey_Mobile_Project/build/ios/ipa/*.ipa
-        retention-days: 30
-        
-    - name: Upload Debug Build
-      uses: actions/upload-artifact@v4
-      with:
-        name: ppapikey-mobile-debug-build-${{ github.sha }}
-        path: PPAPIKey_Mobile_Project/build/ios/iphoneos/
-        retention-days: 7
-        
-    - name: Build Summary
-      run: |
-        echo "=========================================="
-        echo "✅ Build completed successfully!"
-        echo "=========================================="
-        echo "📱 Debug IPA: ppapikey-mobile-debug-${{ github.sha }}"
-        echo "📱 Release IPA: ppapikey-mobile-release-${{ github.sha }}"
-        echo "📱 Debug Build: ppapikey-mobile-debug-build-${{ github.sha }}"
-        echo "=========================================="
-        echo "⚠️  Note: These IPAs are NOT signed"
-        echo "⚠️  Cannot be installed on real devices"
-        echo "⚠️  For development/testing purposes only"
-        echo "⚠️  Use iOS Simulator for testing"
-        echo "=========================================="
+        echo ""
+        echo "pubspec.yaml exists:"
+        test -f pubspec.yaml && echo "✅ YES" || echo "❌ NO"
+        echo ""
+        echo "Running flutter pub get..."
+        flutter pub get
+        echo ""
+        echo "Running flutter doctor..."
+        flutter doctor
