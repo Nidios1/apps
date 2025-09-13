@@ -23,18 +23,19 @@ jobs:
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
         
-    - name: Build iOS App Bundle
+    - name: Build iOS Simulator (No Code Sign Required)
       working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter build ios --debug --no-codesign
+      run: flutter build ios --debug --simulator
         
-    - name: Create IPA from App Bundle
+    - name: Create IPA from Simulator Build
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        cd build/ios/iphoneos
+        cd build/ios/iphonesimulator
         mkdir -p Payload
         cp -r Runner.app Payload/
         zip -r ../../../ppapikey.ipa Payload/
         rm -rf Payload
+        echo "IPA created successfully from simulator build"
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
