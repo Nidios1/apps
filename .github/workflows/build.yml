@@ -23,6 +23,12 @@ jobs:
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
         
+    - name: Clean and prepare
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: |
+        flutter clean
+        flutter pub get
+        
     - name: Build iOS Simulator (No Code Sign Required)
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter build ios --debug --simulator
