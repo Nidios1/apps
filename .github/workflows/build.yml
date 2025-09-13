@@ -27,31 +27,46 @@ jobs:
         distribution: 'zulu'
         java-version: '17'
         
+    - name: Check Flutter project structure
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Contents:"
+        ls -la
+        echo "Looking for pubspec.yaml..."
+        find . -name "pubspec.yaml" -type f
+        
     - name: Install dependencies
+      working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
       
     - name: Run tests
+      working-directory: ./PPAPIKey_Mobile_Project
       run: flutter test
       
     - name: Analyze code
+      working-directory: ./PPAPIKey_Mobile_Project
       run: flutter analyze
       
     - name: Build iOS Debug (No Code Signing)
+      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Building iOS app in debug mode without code signing..."
         flutter build ios --debug --no-codesign
         
     - name: Build iOS Release (No Code Signing)
+      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Building iOS app in release mode without code signing..."
         flutter build ios --release --no-codesign
         
     - name: Build IPA Debug
+      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Building IPA in debug mode..."
         flutter build ipa --debug --no-codesign
         
     - name: Build IPA Release
+      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Building IPA in release mode..."
         flutter build ipa --release --no-codesign
@@ -60,21 +75,21 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ppapikey-mobile-debug-${{ github.sha }}
-        path: build/ios/ipa/*.ipa
+        path: PPAPIKey_Mobile_Project/build/ios/ipa/*.ipa
         retention-days: 30
         
     - name: Upload Release IPA
       uses: actions/upload-artifact@v4
       with:
         name: ppapikey-mobile-release-${{ github.sha }}
-        path: build/ios/ipa/*.ipa
+        path: PPAPIKey_Mobile_Project/build/ios/ipa/*.ipa
         retention-days: 30
         
     - name: Upload Debug Build
       uses: actions/upload-artifact@v4
       with:
         name: ppapikey-mobile-debug-build-${{ github.sha }}
-        path: build/ios/iphoneos/
+        path: PPAPIKey_Mobile_Project/build/ios/iphoneos/
         retention-days: 7
         
     - name: Build Summary
