@@ -1,4 +1,4 @@
-name: Build IPA
+name: Build Flutter App
 
 on:
   push:
@@ -23,22 +23,17 @@ jobs:
       working-directory: ./PPAPIKey_Mobile_Project
       run: flutter pub get
         
-    - name: Build iOS App
+    - name: Analyze code
       working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter build ios --debug --no-codesign
+      run: flutter analyze
         
-    - name: Create IPA manually
+    - name: Build Web App
       working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        cd build/ios/iphoneos
-        mkdir -p Payload
-        cp -r Runner.app Payload/
-        zip -r ../../../ppapikey.ipa Payload
-        echo "IPA created successfully!"
+      run: flutter build web
         
-    - name: Upload IPA
+    - name: Upload Web App
       uses: actions/upload-artifact@v4
       with:
-        name: ppapikey-ipa
-        path: PPAPIKey_Mobile_Project/ppapikey.ipa
+        name: ppapikey-web
+        path: PPAPIKey_Mobile_Project/build/web/
         retention-days: 30
