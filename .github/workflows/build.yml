@@ -25,10 +25,11 @@ jobs:
         ruby-version: '2.7'
         bundler-cache: true
         
-    - name: Install CocoaPods 1.11.3
+    - name: Install CocoaPods via Bundler
+      working-directory: ./PPAPIKey_Mobile_Project/ios
       run: |
-        gem uninstall cocoapods -a -I || true
-        gem install cocoapods -v 1.11.3
+        bundle install
+        bundle exec pod --version
         
     - name: Install dependencies
       working-directory: ./PPAPIKey_Mobile_Project
@@ -38,7 +39,7 @@ jobs:
       working-directory: ./PPAPIKey_Mobile_Project/ios
       run: |
         rm -f Podfile.lock
-        pod install --repo-update
+        bundle exec pod install --repo-update
         
     - name: Build IPA
       working-directory: ./PPAPIKey_Mobile_Project
