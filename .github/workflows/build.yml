@@ -1,0 +1,93 @@
+name: Build Flutter iOS App (No Signing)
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+        
+    - name: Install dependencies
+      run: flutter pub get
+      
+    - name: Run tests
+      run: flutter test
+      
+    - name: Analyze code
+      run: flutter analyze
+      
+    - name: Build iOS Debug (No Code Signing)
+      run: |
+        echo "Building iOS app in debug mode without code signing..."
+        flutter build ios --debug --no-codesign
+        
+    - name: Build iOS Release (No Code Signing)
+      run: |
+        echo "Building iOS app in release mode without code signing..."
+        flutter build ios --release --no-codesign
+        
+    - name: Build IPA Debug
+      run: |
+        echo "Building IPA in debug mode..."
+        flutter build ipa --debug --no-codesign
+        
+    - name: Build IPA Release
+      run: |
+        echo "Building IPA in release mode..."
+        flutter build ipa --release --no-codesign
+        
+    - name: Upload Debug IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: ppapikey-mobile-debug-${{ github.sha }}
+        path: build/ios/ipa/*.ipa
+        retention-days: 30
+        
+    - name: Upload Release IPA
+      uses: actions/upload-artifact@v4
+      with:
+        name: ppapikey-mobile-release-${{ github.sha }}
+        path: build/ios/ipa/*.ipa
+        retention-days: 30
+        
+    - name: Upload Debug Build
+      uses: actions/upload-artifact@v4
+      with:
+        name: ppapikey-mobile-debug-build-${{ github.sha }}
+        path: build/ios/iphoneos/
+        retention-days: 7
+        
+    - name: Build Summary
+      run: |
+        echo "=========================================="
+        echo "✅ Build completed successfully!"
+        echo "=========================================="
+        echo "📱 Debug IPA: ppapikey-mobile-debug-${{ github.sha }}"
+        echo "📱 Release IPA: ppapikey-mobile-release-${{ github.sha }}"
+        echo "📱 Debug Build: ppapikey-mobile-debug-build-${{ github.sha }}"
+        echo "=========================================="
+        echo "⚠️  Note: These IPAs are NOT signed"
+        echo "⚠️  Cannot be installed on real devices"
+        echo "⚠️  For development/testing purposes only"
+        echo "⚠️  Use iOS Simulator for testing"
+        echo "=========================================="
