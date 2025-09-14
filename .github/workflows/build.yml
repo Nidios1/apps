@@ -54,6 +54,10 @@ jobs:
       run: |
         echo "Setting up CocoaPods environment..."
         
+        # Remove existing CocoaPods installations
+        gem uninstall cocoapods --all --force || true
+        brew uninstall cocoapods || true
+        
         # Install specific Ruby version for stability
         rbenv install 3.1.0 || true
         rbenv global 3.1.0 || true
@@ -61,8 +65,12 @@ jobs:
         # Install CocoaPods with specific version
         gem install cocoapods --version 1.15.2 --no-document
         
-        # Verify installation
+        # Verify installation and force path
         pod --version
+        which pod
+        
+        # Update PATH to use our CocoaPods
+        echo "export PATH=\$(gem environment home)/bin:\$PATH" >> $GITHUB_ENV
         
     - name: Install iOS dependencies
       working-directory: ./PPAPIKey_Mobile_Project
@@ -73,12 +81,34 @@ jobs:
         echo "Installing CocoaPods dependencies..."
         cd ios
         
+        # Verify CocoaPods version before proceeding
+        echo "Checking CocoaPods version..."
+        pod --version
+        which pod
+        
         # Clean everything for fresh install
         rm -rf Pods/ Podfile.lock .symlinks/
         
+        # Force use our CocoaPods version
+        export PATH=$(gem environment home)/bin:$PATH
+        pod --version
+        
         # Install pods with comprehensive error handling
         echo "Installing pods..."
-        pod install --repo-update --verbose || {
+        pod install --repo-update --verbose 2>&1 || {
+          echo "=== POD INSTALL ERROR DEBUG ==="
+          echo "Pod version:"
+          pod --version
+          echo "Ruby version:"
+          ruby --version
+          echo "Gem environment:"
+          gem environment
+          echo "Available gems:"
+          gem list | grep cocoapods
+          echo "PATH:"
+          echo $PATH
+          echo "================================"
+          
           echo "First pod install failed, trying alternative approach..."
           
           # Try with simplified Podfile
@@ -90,6 +120,7 @@ jobs:
             echo "Pod install still failing, trying without repo update..."
             pod install --verbose || {
               echo "All pod install attempts failed, trying minimal approach..."
+              cp ../Podfile.minimal Podfile
               pod install --no-repo-update --verbose || {
                 echo "Final attempt with basic pod install..."
                 pod install
@@ -109,6 +140,25 @@ jobs:
         
         echo "Verifying framework structure..."
         ls -la Pods/Flutter/Flutter.framework/ || echo "Flutter framework not found"
+        
+    - name: Fallback - Build without CocoaPods (if needed)
+      working-directory: ./PPAPIKey_Mobile_Project
+      if: failure()
+      run: |
+        echo "CocoaPods failed, trying Flutter build without CocoaPods..."
+        
+        # Clean and try Flutter build directly
+        rm -rf build/
+        flutter clean
+        flutter pub get
+        
+        # Try building without CocoaPods
+        flutter build ios --release --no-codesign --verbose || {
+          echo "Flutter build also failed, this indicates a deeper issue"
+          exit 1
+        }
+        
+        echo "Flutter build succeeded without CocoaPods"
         
     - name: Pre-build verification
       working-directory: ./PPAPIKey_Mobile_Project
