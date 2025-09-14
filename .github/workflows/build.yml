@@ -1,4 +1,4 @@
-name: iOS Build for eSign
+name: Build iOS App
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-esign:
+  build:
     runs-on: macos-latest
     
     steps:
@@ -22,9 +22,15 @@ jobs:
         sudo gem install cocoapods
         pod setup
         
-    - name: Clean and prepare
+    - name: Clean project
       run: |
         flutter clean
+        rm -rf ios/Pods
+        rm -rf ios/Podfile.lock
+        rm -rf build/
+        
+    - name: Get dependencies
+      run: |
         flutter pub get
         
     - name: Generate Flutter iOS files
@@ -37,25 +43,26 @@ jobs:
         pod install --repo-update --verbose
         cd ..
         
-    - name: Build iOS (Unsigned for eSign)
+    - name: Verify configuration
+      run: |
+        echo "Bundle ID: com.ppapikey.dev"
+        grep -r "com.ppapikey.dev" ios/Runner/
+        
+    - name: Build iOS App
       run: |
         flutter build ios --release --no-codesign --no-pub --verbose
         
-    - name: Create IPA for eSign
+    - name: Create IPA
       run: |
         cd build/ios/iphoneos
         mkdir -p Payload
         cp -r Runner.app Payload/
-        zip -r ../../../PPAPIKey_Mobile_unsigned.ipa Payload/
+        zip -r ../../../PPAPIKey_Mobile.ipa Payload/ -x "*.DS_Store" "*/.*"
         cd ../../..
         
-    - name: Verify IPA structure
-      run: |
-        unzip -l PPAPIKey_Mobile_unsigned.ipa
-        
-    - name: Upload IPA for eSign
+    - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
-        name: ios-app-unsigned-for-esign
-        path: PPAPIKey_Mobile_unsigned.ipa
+        name: ios-app
+        path: PPAPIKey_Mobile.ipa
         retention-days: 30
