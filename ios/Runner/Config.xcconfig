@@ -2,7 +2,7 @@
 // This file configures code signing for the iOS app
 
 // Bundle Identifier - MUST match with Apple Developer Portal
-PRODUCT_BUNDLE_IDENTIFIER = com.ppapikey.mobile
+PRODUCT_BUNDLE_IDENTIFIER = com.ppapikey.dev
 
 // Code Signing Style - Use automatic for easier management
 CODE_SIGN_STYLE = Automatic
