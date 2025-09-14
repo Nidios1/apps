@@ -16,8 +16,8 @@ CODE_SIGN_IDENTITY =
 // Provisioning Profile - Will be set automatically
 PROVISIONING_PROFILE_SPECIFIER = 
 
-// iOS Deployment Target
-IPHONEOS_DEPLOYMENT_TARGET = 12.0
+// iOS Deployment Target - Updated for better compatibility
+IPHONEOS_DEPLOYMENT_TARGET = 13.0
 
 // Disable Bitcode for Flutter compatibility
 ENABLE_BITCODE = NO

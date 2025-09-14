@@ -49,5 +49,37 @@
 	<true/>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	
+	<!-- Required permissions for app functionality -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>This app needs access to photo library to select images</string>
+	<key>NSCameraUsageDescription</key>
+	<string>This app needs access to camera to take photos</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app needs access to microphone for audio features</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>This app needs local network access for API communication</string>
+	
+	<!-- Background modes for notifications -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>background-processing</string>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- App Transport Security -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
 </dict>
 </plist>

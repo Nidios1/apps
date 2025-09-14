@@ -26,6 +26,17 @@ dependencies:
   
   # Internationalization
   intl: ^0.19.0
+  
+  # Additional dependencies for missing frameworks
+  flutter_app_badger: ^1.5.0
+  image_picker: ^1.0.4
+  just_audio: ^0.9.36
+  url_launcher: ^6.2.1
+  path_provider: ^2.1.1
+  sqflite: ^2.3.0
+  package_info_plus: ^4.2.0
+  audio_session: ^0.1.16
+  flutter_local_notifications: ^16.3.0
 
 dev_dependencies:
   flutter_test:
