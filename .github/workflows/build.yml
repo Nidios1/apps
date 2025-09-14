@@ -40,7 +40,7 @@ jobs:
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Building iOS app for device..."
-        flutter build ios --release --no-codesign --verbose
+        flutter build ios --release --no-codesign --verbose --target-platform ios-arm64
         
     - name: Verify Build Contents
       working-directory: ./PPAPIKey_Mobile_Project
