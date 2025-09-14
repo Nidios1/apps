@@ -39,15 +39,19 @@ jobs:
         
     - name: Build iOS (Unsigned for eSign)
       run: |
-        flutter build ios --release --no-codesign --no-pub --no-tree-shake-icons --verbose
+        flutter build ios --release --no-codesign --no-pub --verbose
         
     - name: Create IPA for eSign
       run: |
         cd build/ios/iphoneos
-        mkdir Payload
+        mkdir -p Payload
         cp -r Runner.app Payload/
         zip -r ../../../PPAPIKey_Mobile_unsigned.ipa Payload/
         cd ../../..
+        
+    - name: Verify IPA structure
+      run: |
+        unzip -l PPAPIKey_Mobile_unsigned.ipa
         
     - name: Upload IPA for eSign
       uses: actions/upload-artifact@v4
