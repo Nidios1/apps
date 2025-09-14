@@ -58,13 +58,22 @@ jobs:
         
         echo "Installing CocoaPods dependencies..."
         cd ios
-        pod install --repo-update
+        
+        # Clean and reinstall pods for iOS 18 compatibility
+        rm -rf Pods/ Podfile.lock
+        pod install --repo-update --verbose
         
         echo "Verifying pod installation..."
         pod list | head -20
         
         echo "Checking Flutter frameworks..."
         ls -la Pods/Flutter/ || echo "Flutter pod not found"
+        
+        echo "Checking all frameworks..."
+        find Pods -name "*.framework" | head -20
+        
+        echo "Verifying framework structure..."
+        ls -la Pods/Flutter/Flutter.framework/ || echo "Flutter framework not found"
         
     - name: Pre-build verification
       working-directory: ./PPAPIKey_Mobile_Project
@@ -94,8 +103,8 @@ jobs:
         # Clean build directory first
         rm -rf build/
         
-        # Build with detailed output and proper configuration
-        flutter build ios --release --no-codesign --verbose --tree-shake-icons --split-debug-info=build/debug-info --obfuscate
+        # Build with detailed output and proper configuration for iOS 18
+        flutter build ios --release --no-codesign --verbose --tree-shake-icons --split-debug-info=build/debug-info --obfuscate --dart-define=FLUTTER_WEB_USE_SKIA=true
         
         echo "=== BUILD VERIFICATION ==="
         echo "Checking build output..."
@@ -107,6 +116,12 @@ jobs:
           ls -la build/ios/iphoneos/Runner.app/Frameworks/
           echo "Frameworks count:"
           ls -la build/ios/iphoneos/Runner.app/Frameworks/ | wc -l
+          
+          echo "Checking specific frameworks:"
+          ls -la build/ios/iphoneos/Runner.app/Frameworks/ | grep -E "(Flutter|App\.framework|audio_session|flutter_local_notifications|just_audio|image_picker|url_launcher|package_info|path_provider|sqflite|flutter_app_badger|permission_handler)"
+          
+          echo "Framework sizes:"
+          du -sh build/ios/iphoneos/Runner.app/Frameworks/*
         else
           echo "❌ Frameworks directory missing!"
           exit 1
