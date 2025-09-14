@@ -36,19 +36,19 @@ jobs:
         pod install --repo-update --verbose
         cd ..
         
-    - name: Build iOS
+    - name: Build iOS (Development)
       run: |
-        flutter build ios --release --no-codesign --no-pub --no-tree-shake-icons --verbose
+        flutter build ios --debug --no-codesign --no-pub --no-tree-shake-icons --verbose
         
-    - name: Create IPA
+    - name: Create IPA (Development)
       run: |
         cd build/ios/iphoneos
         mkdir Payload
         cp -r Runner.app Payload/
-        zip -r ../../../app.ipa Payload/
+        zip -r ../../../app-debug.ipa Payload/
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
-        name: ios-app
-        path: app.ipa
+        name: ios-app-debug
+        path: app-debug.ipa
