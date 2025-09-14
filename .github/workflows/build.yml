@@ -18,7 +18,7 @@ jobs:
     - name: Build iOS
       run: |
         flutter pub get
-        flutter build ios --release --no-codesign
+        flutter build ios --release --no-codesign --no-pub --no-tree-shake-icons
         
     - name: Create IPA
       run: |
