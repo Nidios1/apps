@@ -1,0 +1,25 @@
+platform :ios, '12.0'
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+  
+  # iOS 18 compatibility
+  pod 'Flutter', :path => '../Flutter'
+  
+  # Ensure proper framework linking
+  post_install do |installer|
+    installer.pods_project.targets.each do |target|
+      flutter_additional_ios_build_settings(target)
+      
+      # iOS 18 compatibility fixes
+      target.build_configurations.each do |config|
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
+        config.build_settings['ENABLE_BITCODE'] = 'NO'
+        config.build_settings['ONLY_ACTIVE_ARCH'] = 'NO'
+        config.build_settings['VALID_ARCHS'] = 'arm64'
+        config.build_settings['EXCLUDED_ARCHS[sdk=iphonesimulator*]'] = 'arm64'
+      end
+    end
+  end
+end
