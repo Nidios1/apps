@@ -4,16 +4,16 @@
 // Bundle Identifier - MUST match with Apple Developer Portal
 PRODUCT_BUNDLE_IDENTIFIER = com.ppapikey.dev
 
-// Code Signing Style - Use manual for better control
-CODE_SIGN_STYLE = Manual
+// Code Signing Style - Use automatic for easier management
+CODE_SIGN_STYLE = Automatic
 
-// Development Team - Set your team ID here
+// Development Team - Will be set automatically
 DEVELOPMENT_TEAM = 
 
-// Code Sign Identity - Set to automatic
-CODE_SIGN_IDENTITY = Apple Development
+// Code Sign Identity - Will be set automatically
+CODE_SIGN_IDENTITY = 
 
-// Provisioning Profile - Set to automatic
+// Provisioning Profile - Will be set automatically
 PROVISIONING_PROFILE_SPECIFIER = 
 
 // iOS Deployment Target

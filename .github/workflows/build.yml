@@ -72,9 +72,88 @@ jobs:
           exit 1
         fi
         
+    - name: Create installation guide
+      run: |
+        cat > INSTALLATION_GUIDE.md << 'EOF'
+        # PPAPIKey Mobile - Installation Guide
+        
+        ## ⚠️ Important Notes
+        - This is an UNSIGNED IPA file
+        - You need a valid Apple Developer Account ($99/year)
+        - Device must be registered in your provisioning profile
+        - Bundle ID: com.ppapikey.dev
+        
+        ## 🔧 Installation Methods
+        
+        ### Method 1: Using AltStore (Recommended)
+        1. Download AltStore from altstore.io
+        2. Install AltStore on your Mac/PC
+        3. Download the IPA from GitHub Actions artifacts
+        4. Connect your iOS device to computer
+        5. Open AltStore and drag IPA file into it
+        6. Enter your Apple ID credentials
+        7. Install on device
+        
+        ### Method 2: Using Sideloadly
+        1. Download Sideloadly from sideloadly.io
+        2. Download the IPA from GitHub Actions artifacts
+        3. Connect your iOS device
+        4. Open Sideloadly and load the IPA file
+        5. Enter your Apple ID credentials
+        6. Click "Start" to install
+        
+        ### Method 3: Using Xcode
+        1. Download Xcode from App Store
+        2. Download the IPA from GitHub Actions artifacts
+        3. Extract IPA contents (rename .ipa to .zip)
+        4. Open Xcode and create new project
+        5. Import Runner.app into project
+        6. Set your development team
+        7. Build and run on device
+        
+        ## 🚨 Troubleshooting
+        
+        ### "Cannot Install" Error
+        - Ensure device UDID is registered in Apple Developer Portal
+        - Check Bundle ID matches provisioning profile (com.ppapikey.dev)
+        - Verify certificate is valid and not expired
+        - Try using a different installation method
+        
+        ### "Untrusted Developer" Error
+        - Go to Settings > General > Device Management
+        - Find your developer certificate
+        - Tap "Trust" button
+        
+        ### "App Installation Failed" Error
+        - Check if device has enough storage space
+        - Restart device and try again
+        - Use a different Apple ID
+        - Try installing during off-peak hours
+        
+        ## 📱 Bundle Information
+        - Bundle ID: com.ppapikey.dev
+        - Version: 1.2.2
+        - Build: 1
+        - iOS Requirement: 13.0+
+        - App Name: PPAPIKey Mobile
+        
+        ## 💡 Tips
+        - Use AltStore for easiest installation
+        - Keep your Apple ID credentials secure
+        - Install during stable network connection
+        - Restart device if installation fails
+        EOF
+        
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
         name: ios-app
         path: PPAPIKey_Mobile.ipa
+        retention-days: 30
+        
+    - name: Upload installation guide
+      uses: actions/upload-artifact@v4
+      with:
+        name: installation-guide
+        path: INSTALLATION_GUIDE.md
         retention-days: 30
