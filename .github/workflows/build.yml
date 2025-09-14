@@ -63,11 +63,38 @@ jobs:
         
     - name: Create IPA
       run: |
+        echo "Creating IPA file..."
         cd build/ios/iphoneos
+        
+        # Remove any existing Payload
+        rm -rf Payload
+        
+        # Create Payload directory
         mkdir -p Payload
+        
+        # Copy Runner.app to Payload
+        echo "Copying Runner.app to Payload..."
         cp -r Runner.app Payload/
-        zip -r ../../../PPAPIKey_Mobile.ipa Payload/ -x "*.DS_Store" "*/.*"
+        
+        # Verify structure
+        echo "Payload structure:"
+        ls -la Payload/
+        echo "App structure:"
+        ls -la Payload/Runner.app/
+        
+        # Create IPA with proper compression
+        echo "Creating IPA file..."
+        zip -r ../../../PPAPIKey_Mobile.ipa Payload/ -x "*.DS_Store" "*/.*" "*/__pycache__/*"
+        
         cd ../../..
+        
+        # Verify IPA was created
+        if [ -f "PPAPIKey_Mobile.ipa" ]; then
+          echo "✅ IPA created successfully: PPAPIKey_Mobile.ipa"
+        else
+          echo "❌ IPA creation failed"
+          exit 1
+        fi
         
     - name: Verify IPA
       run: |
@@ -76,11 +103,33 @@ jobs:
         echo "IPA size:"
         ls -lh PPAPIKey_Mobile.ipa
         
-    - name: Upload IPA
+    - name: Create additional artifacts
+      run: |
+        echo "Creating additional artifacts..."
+        
+        # Create a zip of the .app file for direct use
+        cd build/ios/iphoneos
+        zip -r ../../../PPAPIKey_Mobile_App.zip Runner.app -x "*.DS_Store" "*/.*"
+        cd ../../..
+        
+        # Create a tar.gz of the .app file
+        cd build/ios/iphoneos
+        tar -czf ../../../PPAPIKey_Mobile_App.tar.gz Runner.app
+        cd ../../..
+        
+        echo "Created artifacts:"
+        echo "- PPAPIKey_Mobile.ipa (for installation)"
+        echo "- PPAPIKey_Mobile_App.zip (app bundle)"
+        echo "- PPAPIKey_Mobile_App.tar.gz (app bundle compressed)"
+        
+    - name: Upload all artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ios-app
-        path: PPAPIKey_Mobile.ipa
+        name: ios-app-files
+        path: |
+          PPAPIKey_Mobile.ipa
+          PPAPIKey_Mobile_App.zip
+          PPAPIKey_Mobile_App.tar.gz
         retention-days: 30
         
     - name: Create installation instructions
