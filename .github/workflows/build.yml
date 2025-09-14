@@ -1,11 +1,12 @@
-name: iOS Build
+name: iOS Build for eSign
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-esign:
     runs-on: macos-latest
     
     steps:
@@ -53,3 +54,4 @@ jobs:
       with:
         name: ios-app-unsigned-for-esign
         path: PPAPIKey_Mobile_unsigned.ipa
+        retention-days: 30

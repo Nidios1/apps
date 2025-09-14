@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # PPAPIKey Mobile
 
 Flutter iOS app for API key management.
@@ -140,7 +139,3 @@ All build workflows are now working correctly:
 - ✅ iOS app builds successfully
 - ✅ All dependencies resolved
 - ✅ No more build errors
-=======
-# apps
-appps
->>>>>>> b6ab0b69308e59a41d315cd637bf392a320a7d33

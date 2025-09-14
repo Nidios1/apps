@@ -143,3 +143,37 @@ keys/
 *.g.dart
 *.freezed.dart
 *.mocks.dart
+
+# Xcode
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+
+# CocoaPods
+ios/Pods/
+ios/Podfile.lock
+
+# Fastlane
+ios/fastlane/report.xml
+ios/fastlane/Preview.html
+ios/fastlane/screenshots
+ios/fastlane/test_output
+
+# Android
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/key.properties
+android/.gradle/
+android/captures/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/**/GeneratedPluginRegistrant.java
+
+# Web
+web/
+
+# Test
+test/coverage/
+coverage/
