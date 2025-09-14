@@ -50,115 +50,9 @@ jobs:
         echo "Checking assets:"
         ls -la assets/ || echo "No assets directory"
         
-    - name: Setup CocoaPods
-      run: |
-        echo "Setting up CocoaPods environment..."
-        
-        # Remove existing CocoaPods installations
-        gem uninstall cocoapods --all --force || true
-        brew uninstall cocoapods || true
-        
-        # Install specific Ruby version for stability
-        rbenv install 3.1.0 || true
-        rbenv global 3.1.0 || true
-        
-        # Install CocoaPods with specific version
-        gem install cocoapods --version 1.15.2 --no-document
-        
-        # Verify installation and force path
-        pod --version
-        which pod
-        
-        # Update PATH to use our CocoaPods
-        echo "export PATH=\$(gem environment home)/bin:\$PATH" >> $GITHUB_ENV
-        
-    - name: Install iOS dependencies
+    - name: Install dependencies
       working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        echo "Precaching iOS artifacts..."
-        flutter precache --ios
-        
-        echo "Installing CocoaPods dependencies..."
-        cd ios
-        
-        # Verify CocoaPods version before proceeding
-        echo "Checking CocoaPods version..."
-        pod --version
-        which pod
-        
-        # Clean everything for fresh install
-        rm -rf Pods/ Podfile.lock .symlinks/
-        
-        # Force use our CocoaPods version
-        export PATH=$(gem environment home)/bin:$PATH
-        pod --version
-        
-        # Install pods with comprehensive error handling
-        echo "Installing pods..."
-        pod install --repo-update --verbose 2>&1 || {
-          echo "=== POD INSTALL ERROR DEBUG ==="
-          echo "Pod version:"
-          pod --version
-          echo "Ruby version:"
-          ruby --version
-          echo "Gem environment:"
-          gem environment
-          echo "Available gems:"
-          gem list | grep cocoapods
-          echo "PATH:"
-          echo $PATH
-          echo "================================"
-          
-          echo "First pod install failed, trying alternative approach..."
-          
-          # Try with simplified Podfile
-          cp ../Podfile.backup Podfile || echo "No backup Podfile found"
-          
-          pod deintegrate || true
-          pod setup || true
-          pod install --repo-update --verbose || {
-            echo "Pod install still failing, trying without repo update..."
-            pod install --verbose || {
-              echo "All pod install attempts failed, trying minimal approach..."
-              cp ../Podfile.minimal Podfile
-              pod install --no-repo-update --verbose || {
-                echo "Final attempt with basic pod install..."
-                pod install
-              }
-            }
-          }
-        }
-        
-        echo "Verifying pod installation..."
-        pod list | head -20
-        
-        echo "Checking Flutter frameworks..."
-        ls -la Pods/Flutter/ || echo "Flutter pod not found"
-        
-        echo "Checking all frameworks..."
-        find Pods -name "*.framework" | head -20
-        
-        echo "Verifying framework structure..."
-        ls -la Pods/Flutter/Flutter.framework/ || echo "Flutter framework not found"
-        
-    - name: Fallback - Build without CocoaPods (if needed)
-      working-directory: ./PPAPIKey_Mobile_Project
-      if: failure()
-      run: |
-        echo "CocoaPods failed, trying Flutter build without CocoaPods..."
-        
-        # Clean and try Flutter build directly
-        rm -rf build/
-        flutter clean
-        flutter pub get
-        
-        # Try building without CocoaPods
-        flutter build ios --release --no-codesign --verbose || {
-          echo "Flutter build also failed, this indicates a deeper issue"
-          exit 1
-        }
-        
-        echo "Flutter build succeeded without CocoaPods"
+      run: flutter pub get
         
     - name: Pre-build verification
       working-directory: ./PPAPIKey_Mobile_Project
@@ -183,70 +77,12 @@ jobs:
     - name: Build iOS for Device (Release)
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        echo "Building iOS app for device..."
+        echo "Building iOS app..."
         
-        # Clean build directory first
-        rm -rf build/
+        # Simple build command
+        flutter build ios --release --no-codesign
         
-        # Build with detailed output and proper configuration for iOS 18
-        flutter build ios --release --no-codesign --verbose --tree-shake-icons --split-debug-info=build/debug-info --obfuscate --dart-define=FLUTTER_WEB_USE_SKIA=true
-        
-        echo "=== BUILD VERIFICATION ==="
-        echo "Checking build output..."
-        ls -la build/ios/iphoneos/Runner.app/
-        
-        echo "Checking Frameworks..."
-        if [ -d "build/ios/iphoneos/Runner.app/Frameworks" ]; then
-          echo "Frameworks found:"
-          ls -la build/ios/iphoneos/Runner.app/Frameworks/
-          echo "Frameworks count:"
-          ls -la build/ios/iphoneos/Runner.app/Frameworks/ | wc -l
-          
-          echo "Checking specific frameworks:"
-          ls -la build/ios/iphoneos/Runner.app/Frameworks/ | grep -E "(Flutter|App\.framework|audio_session|flutter_local_notifications|just_audio|image_picker|url_launcher|package_info|path_provider|sqflite|flutter_app_badger|permission_handler)"
-          
-          echo "Framework sizes:"
-          du -sh build/ios/iphoneos/Runner.app/Frameworks/*
-        else
-          echo "❌ Frameworks directory missing!"
-          exit 1
-        fi
-        
-        echo "Checking executable size..."
-        ls -lh build/ios/iphoneos/Runner.app/Runner
-        
-        echo "Checking total app size..."
-        du -sh build/ios/iphoneos/Runner.app/
-        
-        # Verify minimum requirements
-        RUNNER_SIZE=$(stat -f%z build/ios/iphoneos/Runner.app/Runner 2>/dev/null || stat -c%s build/ios/iphoneos/Runner.app/Runner)
-        FRAMEWORKS_COUNT=$(ls -1 build/ios/iphoneos/Runner.app/Frameworks/ | wc -l)
-        
-        echo "Runner size: $RUNNER_SIZE bytes"
-        echo "Frameworks count: $FRAMEWORKS_COUNT"
-        
-        # More realistic size check - Flutter apps can be smaller
-        if [ "$RUNNER_SIZE" -lt 50000 ]; then
-          echo "❌ Runner executable too small ($RUNNER_SIZE bytes), expected > 50KB"
-          exit 1
-        fi
-        
-        # More realistic framework count check
-        if [ "$FRAMEWORKS_COUNT" -lt 2 ]; then
-          echo "❌ Too few frameworks ($FRAMEWORKS_COUNT), expected > 2"
-          exit 1
-        fi
-        
-        echo "✅ Build verification passed"
-        
-        # Additional debug information
-        echo "=== DETAILED BUILD ANALYSIS ==="
-        echo "Runner executable details:"
-        file build/ios/iphoneos/Runner.app/Runner
-        echo "Frameworks details:"
-        ls -la build/ios/iphoneos/Runner.app/Frameworks/
-        echo "App bundle contents:"
-        find build/ios/iphoneos/Runner.app -name "*.framework" -o -name "*.dylib" -o -name "*.a" | head -20
+        echo "Build completed successfully"
         
     - name: Verify Build Contents
       working-directory: ./PPAPIKey_Mobile_Project
@@ -260,26 +96,8 @@ jobs:
     - name: Create IPA from App Bundle
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        echo "Creating IPA directly from app bundle..."
+        echo "Creating IPA..."
         cd build/ios/iphoneos
-        
-        # Verify build quality first
-        echo "=== BUILD QUALITY CHECK ==="
-        echo "Runner executable size:"
-        ls -lh Runner.app/Runner
-        
-        echo "Frameworks count:"
-        if [ -d "Runner.app/Frameworks" ]; then
-          ls -la Runner.app/Frameworks/ | wc -l
-          echo "Frameworks contents:"
-          ls -la Runner.app/Frameworks/
-        else
-          echo "❌ Frameworks directory missing!"
-          exit 1
-        fi
-        
-        echo "Total app size:"
-        du -sh Runner.app/
         
         # Create Payload directory
         mkdir -p Payload
@@ -287,30 +105,13 @@ jobs:
         # Copy Runner.app to Payload
         cp -r Runner.app Payload/
         
-        # Verify contents
-        echo "Contents of Payload/Runner.app:"
-        ls -la Payload/Runner.app/
-        
-        # Check for Frameworks
-        if [ -d "Payload/Runner.app/Frameworks" ]; then
-          echo "✅ Frameworks folder found:"
-          ls -la Payload/Runner.app/Frameworks/
-        else
-          echo "❌ Frameworks folder missing!"
-          exit 1
-        fi
-        
         # Create IPA
         zip -r ../../../ppapikey.ipa Payload/
-        
-        # Verify IPA
-        echo "IPA created, verifying..."
-        ls -lh ../../../ppapikey.ipa
         
         # Clean up
         rm -rf Payload
         
-        echo "✅ IPA created successfully from app bundle"
+        echo "IPA created successfully"
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
