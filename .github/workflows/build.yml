@@ -38,7 +38,18 @@ jobs:
         
     - name: Build iOS for Device (Release)
       working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter build ios --release --no-codesign
+      run: |
+        echo "Building iOS app for device..."
+        flutter build ios --release --no-codesign --verbose
+        
+    - name: Verify Build Contents
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: |
+        echo "Checking build contents..."
+        ls -la build/ios/iphoneos/Runner.app/
+        echo "Checking for required files..."
+        ls -la build/ios/iphoneos/Runner.app/Frameworks/ || echo "Frameworks folder missing"
+        ls -la build/ios/iphoneos/Runner.app/_CodeSignature/ || echo "CodeSignature folder missing"
         
     - name: Create IPA from Device Build
       working-directory: ./PPAPIKey_Mobile_Project
@@ -46,6 +57,8 @@ jobs:
         cd build/ios/iphoneos
         mkdir -p Payload
         cp -r Runner.app Payload/
+        echo "Contents of Payload before zipping:"
+        ls -la Payload/Runner.app/
         zip -r ../../../ppapikey.ipa Payload/
         rm -rf Payload
         echo "IPA created successfully from device build"
