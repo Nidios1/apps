@@ -33,6 +33,7 @@ jobs:
     - name: Install iOS dependencies
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
+        flutter precache --ios
         cd ios
         pod install --repo-update
         
