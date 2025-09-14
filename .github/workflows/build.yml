@@ -42,21 +42,6 @@ jobs:
         echo "Building iOS app for device..."
         flutter build ios --release --no-codesign --verbose
         
-    - name: Archive iOS App
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: |
-        echo "Archiving iOS app..."
-        cd ios
-        xcodebuild -workspace Runner.xcworkspace \
-          -scheme Runner \
-          -configuration Release \
-          -destination generic/platform=iOS \
-          -archivePath build/Runner.xcarchive \
-          archive \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
-        
     - name: Verify Build Contents
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
@@ -66,44 +51,37 @@ jobs:
         ls -la build/ios/iphoneos/Runner.app/Frameworks/ || echo "Frameworks folder missing"
         ls -la build/ios/iphoneos/Runner.app/_CodeSignature/ || echo "CodeSignature folder missing"
         
-    - name: Create IPA from Archive
+    - name: Create IPA from App Bundle
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        echo "Creating IPA from archive..."
-        cd ios
-        # Create a temporary ExportOptions without teamID requirement
-        cat > temp_export_options.plist << EOF
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>method</key>
-            <string>development</string>
-            <key>uploadBitcode</key>
-            <false/>
-            <key>uploadSymbols</key>
-            <true/>
-            <key>compileBitcode</key>
-            <false/>
-            <key>stripSwiftSymbols</key>
-            <true/>
-            <key>thinning</key>
-            <string>&lt;none&gt;</string>
-        </dict>
-        </plist>
-        EOF
+        echo "Creating IPA directly from app bundle..."
+        cd build/ios/iphoneos
         
-        xcodebuild -exportArchive \
-          -archivePath build/Runner.xcarchive \
-          -exportPath build/ipa \
-          -exportOptionsPlist temp_export_options.plist \
-          CODE_SIGN_IDENTITY="" \
-          CODE_SIGNING_REQUIRED=NO \
-          CODE_SIGNING_ALLOWED=NO
+        # Create Payload directory
+        mkdir -p Payload
         
-        echo "Moving IPA to project root..."
-        cp build/ipa/Runner.ipa ../../ppapikey.ipa
-        echo "IPA created successfully"
+        # Copy Runner.app to Payload
+        cp -r Runner.app Payload/
+        
+        # Verify contents
+        echo "Contents of Payload/Runner.app:"
+        ls -la Payload/Runner.app/
+        
+        # Check for Frameworks
+        if [ -d "Payload/Runner.app/Frameworks" ]; then
+          echo "Frameworks folder found:"
+          ls -la Payload/Runner.app/Frameworks/
+        else
+          echo "Frameworks folder missing - this is expected for unsigned build"
+        fi
+        
+        # Create IPA
+        zip -r ../../../ppapikey.ipa Payload/
+        
+        # Clean up
+        rm -rf Payload
+        
+        echo "IPA created successfully from app bundle"
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
