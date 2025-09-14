@@ -36,19 +36,19 @@ jobs:
         cd ios
         pod install --repo-update
         
-    - name: Build iOS Simulator (No Code Sign Required)
+    - name: Build iOS for Device (Release)
       working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter build ios --debug --simulator --no-codesign
+      run: flutter build ios --release --no-codesign
         
-    - name: Create IPA from Simulator Build
+    - name: Create IPA from Device Build
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        cd build/ios/iphonesimulator
+        cd build/ios/iphoneos
         mkdir -p Payload
         cp -r Runner.app Payload/
         zip -r ../../../ppapikey.ipa Payload/
         rm -rf Payload
-        echo "IPA created successfully from simulator build"
+        echo "IPA created successfully from device build"
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
