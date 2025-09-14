@@ -24,16 +24,14 @@ jobs:
       run: |
         flutter pub get
         
-        # Install iOS dependencies - Flutter will auto-generate frameworks
+        # Install iOS dependencies
         cd ios
         
         # Clean previous installation
         rm -rf Pods/ Podfile.lock
         
-        # Install pods - Flutter will handle framework generation
-        pod install --verbose || {
-          echo "Pod install failed, but Flutter will generate frameworks during build"
-        }
+        # Install CocoaPods dependencies
+        pod install --verbose
         
         cd ..
         
@@ -85,9 +83,14 @@ jobs:
     - name: Build iOS for Device (Release)
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        echo "Building iOS app with Flutter auto-generating frameworks..."
+        echo "Building iOS app with CocoaPods dependencies..."
         
-        # Build with Flutter handling frameworks automatically
+        # Ensure CocoaPods is properly installed
+        cd ios
+        pod install --verbose
+        cd ..
+        
+        # Build with Flutter
         flutter build ios --release --no-codesign --verbose --tree-shake-icons
         
         echo "Build completed successfully"
