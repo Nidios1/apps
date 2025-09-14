@@ -30,6 +30,16 @@ jobs:
         flutter pub get
         flutter packages get
         
+    - name: Verify Flutter configuration
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: |
+        echo "Flutter doctor:"
+        flutter doctor -v
+        echo "Flutter devices:"
+        flutter devices
+        echo "Project analysis:"
+        flutter analyze
+        
     - name: Install iOS dependencies
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
@@ -42,6 +52,14 @@ jobs:
       run: |
         echo "Building iOS app for device..."
         flutter build ios --release --no-codesign --verbose
+        
+        echo "Checking build output..."
+        ls -la build/ios/iphoneos/Runner.app/
+        echo "Checking Frameworks..."
+        ls -la build/ios/iphoneos/Runner.app/Frameworks/ || echo "Frameworks missing!"
+        
+        echo "Checking executable size..."
+        ls -lh build/ios/iphoneos/Runner.app/Runner
         
     - name: Verify Build Contents
       working-directory: ./PPAPIKey_Mobile_Project
@@ -58,6 +76,24 @@ jobs:
         echo "Creating IPA directly from app bundle..."
         cd build/ios/iphoneos
         
+        # Verify build quality first
+        echo "=== BUILD QUALITY CHECK ==="
+        echo "Runner executable size:"
+        ls -lh Runner.app/Runner
+        
+        echo "Frameworks count:"
+        if [ -d "Runner.app/Frameworks" ]; then
+          ls -la Runner.app/Frameworks/ | wc -l
+          echo "Frameworks contents:"
+          ls -la Runner.app/Frameworks/
+        else
+          echo "❌ Frameworks directory missing!"
+          exit 1
+        fi
+        
+        echo "Total app size:"
+        du -sh Runner.app/
+        
         # Create Payload directory
         mkdir -p Payload
         
@@ -70,19 +106,24 @@ jobs:
         
         # Check for Frameworks
         if [ -d "Payload/Runner.app/Frameworks" ]; then
-          echo "Frameworks folder found:"
+          echo "✅ Frameworks folder found:"
           ls -la Payload/Runner.app/Frameworks/
         else
-          echo "Frameworks folder missing - this is expected for unsigned build"
+          echo "❌ Frameworks folder missing!"
+          exit 1
         fi
         
         # Create IPA
         zip -r ../../../ppapikey.ipa Payload/
         
+        # Verify IPA
+        echo "IPA created, verifying..."
+        ls -lh ../../../ppapikey.ipa
+        
         # Clean up
         rm -rf Payload
         
-        echo "IPA created successfully from app bundle"
+        echo "✅ IPA created successfully from app bundle"
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
