@@ -1,4 +1,4 @@
-name: iOS Build for eSign
+name: iOS Build for Device Installation
 
 on:
   push:
@@ -6,6 +6,56 @@ on:
   workflow_dispatch:
 
 jobs:
+  build-device:
+    runs-on: macos-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.24.0'
+        cache: true
+        
+    - name: Setup CocoaPods
+      run: |
+        sudo gem install cocoapods
+        pod setup
+        
+    - name: Clean and prepare
+      run: |
+        flutter clean
+        flutter pub get
+        
+    - name: Generate Flutter iOS files
+      run: |
+        flutter precache --ios
+        
+    - name: Install iOS dependencies
+      run: |
+        cd ios
+        pod install --repo-update --verbose
+        cd ..
+        
+    - name: Build iOS for Device (Debug)
+      run: |
+        flutter build ios --debug --no-pub --no-tree-shake-icons --verbose
+        
+    - name: Create IPA for Device Installation
+      run: |
+        cd build/ios/iphoneos
+        mkdir Payload
+        cp -r Runner.app Payload/
+        zip -r ../../../PPAPIKey_Mobile_device.ipa Payload/
+        cd ../../..
+        
+    - name: Upload IPA for Device Installation
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-app-for-device-installation
+        path: PPAPIKey_Mobile_device.ipa
+        retention-days: 30
+
   build-esign:
     runs-on: macos-latest
     
@@ -37,3 +87,21 @@ jobs:
         pod install --repo-update --verbose
         cd ..
         
+    - name: Build iOS (Unsigned for eSign)
+      run: |
+        flutter build ios --release --no-codesign --no-pub --no-tree-shake-icons --verbose
+        
+    - name: Create IPA for eSign
+      run: |
+        cd build/ios/iphoneos
+        mkdir Payload
+        cp -r Runner.app Payload/
+        zip -r ../../../PPAPIKey_Mobile_unsigned.ipa Payload/
+        cd ../../..
+        
+    - name: Upload IPA for eSign
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-app-unsigned-for-esign
+        path: PPAPIKey_Mobile_unsigned.ipa
+        retention-days: 30
