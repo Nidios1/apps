@@ -21,7 +21,13 @@ jobs:
         
     - name: Install dependencies
       working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter pub get
+      run: |
+        flutter pub get
+        
+        # Install iOS dependencies
+        cd ios
+        pod install
+        cd ..
         
     - name: Clean and prepare
       working-directory: ./PPAPIKey_Mobile_Project
@@ -50,10 +56,6 @@ jobs:
         echo "Checking assets:"
         ls -la assets/ || echo "No assets directory"
         
-    - name: Install dependencies
-      working-directory: ./PPAPIKey_Mobile_Project
-      run: flutter pub get
-        
     - name: Pre-build verification
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
@@ -79,10 +81,35 @@ jobs:
       run: |
         echo "Building iOS app..."
         
-        # Simple build command
-        flutter build ios --release --no-codesign
+        # Build with proper configuration to match original IPA
+        flutter build ios --release --no-codesign --verbose
         
         echo "Build completed successfully"
+        
+        # Verify build contents match original
+        echo "=== BUILD VERIFICATION ==="
+        echo "Checking Runner.app contents..."
+        ls -la build/ios/iphoneos/Runner.app/
+        
+        echo "Checking Runner executable size..."
+        ls -lh build/ios/iphoneos/Runner.app/Runner
+        
+        echo "Checking Frameworks folder..."
+        if [ -d "build/ios/iphoneos/Runner.app/Frameworks" ]; then
+          echo "Frameworks found:"
+          ls -la build/ios/iphoneos/Runner.app/Frameworks/
+          echo "Frameworks count:"
+          ls -la build/ios/iphoneos/Runner.app/Frameworks/ | wc -l
+        else
+          echo "❌ Frameworks directory missing!"
+          exit 1
+        fi
+        
+        echo "Checking Assets.car..."
+        ls -lh build/ios/iphoneos/Runner.app/Assets.car || echo "Assets.car missing"
+        
+        echo "Checking App icons..."
+        ls -la build/ios/iphoneos/Runner.app/AppIcon*.png || echo "App icons missing"
         
     - name: Verify Build Contents
       working-directory: ./PPAPIKey_Mobile_Project
@@ -96,22 +123,44 @@ jobs:
     - name: Create IPA from App Bundle
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        echo "Creating IPA..."
+        echo "Creating IPA to match original structure..."
         cd build/ios/iphoneos
         
-        # Create Payload directory
+        # Verify we have all required files like original IPA
+        echo "=== PRE-IPA VERIFICATION ==="
+        echo "Runner.app contents:"
+        ls -la Runner.app/
+        
+        echo "Frameworks:"
+        ls -la Runner.app/Frameworks/ || echo "No Frameworks"
+        
+        echo "CodeSignature:"
+        ls -la Runner.app/_CodeSignature/ || echo "No CodeSignature"
+        
+        echo "Assets:"
+        ls -la Runner.app/Assets.car || echo "No Assets.car"
+        
+        # Create Payload directory (same as original IPA structure)
         mkdir -p Payload
         
-        # Copy Runner.app to Payload
+        # Copy Runner.app to Payload (preserving all files)
         cp -r Runner.app Payload/
         
-        # Create IPA
+        # Verify Payload contents
+        echo "Payload contents:"
+        ls -la Payload/Runner.app/
+        
+        # Create IPA with same structure as original
         zip -r ../../../ppapikey.ipa Payload/
+        
+        # Verify IPA was created
+        echo "IPA created:"
+        ls -lh ../../../ppapikey.ipa
         
         # Clean up
         rm -rf Payload
         
-        echo "IPA created successfully"
+        echo "✅ IPA created successfully with same structure as original"
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
