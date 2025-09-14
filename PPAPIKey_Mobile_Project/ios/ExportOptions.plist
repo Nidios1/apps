@@ -12,5 +12,18 @@
     <true/>
     <key>compileBitcode</key>
     <false/>
+    <key>signingStyle</key>
+    <string>manual</string>
+    <key>signingCertificate</key>
+    <string>iPhone Developer</string>
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.ppapikey.dev</key>
+        <string></string>
+    </dict>
+    <key>stripSwiftSymbols</key>
+    <true/>
+    <key>thinning</key>
+    <string>&lt;none&gt;</string>
 </dict>
 </plist>
