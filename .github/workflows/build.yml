@@ -24,8 +24,33 @@ jobs:
       run: |
         flutter pub get
         
-        # Skip CocoaPods for now - Flutter can build without it
-        echo "Skipping CocoaPods installation to avoid version conflicts"
+        # Install iOS dependencies - REQUIRED for frameworks
+        cd ios
+        
+        # Clean previous installation
+        rm -rf Pods/ Podfile.lock
+        
+        # Install pods - this creates all the frameworks
+        pod install --verbose || {
+          echo "Pod install failed, trying alternative approach..."
+          
+          # Try with repo update
+          pod install --repo-update --verbose || {
+            echo "Still failing, trying without repo update..."
+            pod install --no-repo-update --verbose || {
+              echo "All pod install attempts failed, but continuing..."
+            }
+          }
+        }
+        
+        # Verify frameworks were created
+        echo "=== FRAMEWORKS VERIFICATION ==="
+        echo "Frameworks created:"
+        find Pods -name "*.framework" | head -20
+        echo "Frameworks count:"
+        find Pods -name "*.framework" | wc -l
+        
+        cd ..
         
     - name: Clean and prepare
       working-directory: ./PPAPIKey_Mobile_Project
@@ -96,8 +121,39 @@ jobs:
           ls -la build/ios/iphoneos/Runner.app/Frameworks/
           echo "Frameworks count:"
           ls -la build/ios/iphoneos/Runner.app/Frameworks/ | wc -l
+          
+          echo "Expected frameworks (should be 12 like original IPA):"
+          echo "- Flutter.framework"
+          echo "- App.framework" 
+          echo "- audio_session.framework"
+          echo "- flutter_app_badger.framework"
+          echo "- flutter_local_notifications.framework"
+          echo "- image_picker_ios.framework"
+          echo "- just_audio.framework"
+          echo "- package_info_plus.framework"
+          echo "- path_provider_foundation.framework"
+          echo "- shared_preferences_foundation.framework"
+          echo "- sqflite_darwin.framework"
+          echo "- url_launcher_ios.framework"
+          
+          echo "Actual frameworks:"
+          ls -la build/ios/iphoneos/Runner.app/Frameworks/ | grep "\.framework"
+          
+          # Check if we have the expected number of frameworks
+          FRAMEWORK_COUNT=$(ls -la build/ios/iphoneos/Runner.app/Frameworks/ | grep "\.framework" | wc -l)
+          echo "Framework count: $FRAMEWORK_COUNT"
+          
+          if [ "$FRAMEWORK_COUNT" -lt 10 ]; then
+            echo "❌ Too few frameworks ($FRAMEWORK_COUNT), expected 12"
+            echo "This means CocoaPods didn't install properly or Flutter build failed"
+            exit 1
+          else
+            echo "✅ Sufficient frameworks found ($FRAMEWORK_COUNT)"
+          fi
         else
-          echo "No Frameworks folder - Flutter will create them during build"
+          echo "❌ Frameworks directory missing!"
+          echo "This means Flutter build failed or CocoaPods didn't install"
+          exit 1
         fi
         
         echo "Checking Assets.car..."
@@ -134,6 +190,29 @@ jobs:
         
         echo "Assets:"
         ls -la Runner.app/Assets.car || echo "No Assets.car"
+        
+        # Check for required files for installation
+        echo "=== INSTALLATION REQUIREMENTS CHECK ==="
+        if [ -f "Runner.app/Info.plist" ]; then
+          echo "✅ Info.plist present"
+        else
+          echo "❌ Info.plist missing"
+          exit 1
+        fi
+        
+        if [ -f "Runner.app/Runner" ]; then
+          echo "✅ Runner executable present"
+        else
+          echo "❌ Runner executable missing"
+          exit 1
+        fi
+        
+        if [ -d "Runner.app/Frameworks" ]; then
+          echo "✅ Frameworks directory present"
+        else
+          echo "❌ Frameworks directory missing"
+          exit 1
+        fi
         
         # Create Payload directory (same as original IPA structure)
         mkdir -p Payload
