@@ -4,19 +4,19 @@
 // Bundle Identifier - MUST match with Apple Developer Portal
 PRODUCT_BUNDLE_IDENTIFIER = com.ppapikey.dev
 
-// Code Signing Style - Use automatic for easier management
-CODE_SIGN_STYLE = Automatic
+// Code Signing Style - Use manual for better control
+CODE_SIGN_STYLE = Manual
 
-// Development Team - Will be set automatically in Xcode
+// Development Team - Set your team ID here
 DEVELOPMENT_TEAM = 
 
-// Code Sign Identity - Will be set automatically
-CODE_SIGN_IDENTITY = 
+// Code Sign Identity - Set to automatic
+CODE_SIGN_IDENTITY = Apple Development
 
-// Provisioning Profile - Will be set automatically
+// Provisioning Profile - Set to automatic
 PROVISIONING_PROFILE_SPECIFIER = 
 
-// iOS Deployment Target - Updated for better compatibility
+// iOS Deployment Target
 IPHONEOS_DEPLOYMENT_TARGET = 13.0
 
 // Disable Bitcode for Flutter compatibility
@@ -37,3 +37,7 @@ STRIP_STYLE = all
 
 // Ensure proper framework embedding
 ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES
+
+// Code signing settings for installation
+CODE_SIGN_INJECT_BASE_ENTITLEMENTS = YES
+CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements
