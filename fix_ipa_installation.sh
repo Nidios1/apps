@@ -1,205 +1,173 @@
 #!/bin/bash
-# Script fix hoàn chỉnh cho IPA installation trên iPhone
+# Script fix hoàn chỉnh cho việc cài đặt IPA
 
-echo "🚨 Đang fix lỗi cài đặt IPA trên iPhone..."
+echo "🔧 Đang fix hoàn chỉnh cho việc cài đặt IPA..."
 
-# 1. Clean everything completely
-echo "🧹 Cleaning everything completely..."
-flutter clean
-rm -rf ios/Pods
-rm -rf ios/Podfile.lock
-rm -rf ios/.symlinks
-rm -rf ios/Flutter/Flutter.framework
-rm -rf ios/Flutter/Flutter.podspec
-rm -rf ios/Flutter/Generated.xcconfig
-rm -rf build/
+# 1. Tạo script kiểm tra device
+echo "📱 Tạo script kiểm tra device..."
+cat > check_device.sh << 'EOF'
+#!/bin/bash
+echo "📱 Kiểm tra device iPhone..."
 
-# 2. Fix Info.plist với Bundle ID mới và cấu hình đúng
-echo "🔧 Fixing Info.plist..."
-cat > ios/Runner/Info.plist << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
-	<key>CFBundleDisplayName</key>
-	<string>PPAPIKey Mobile</string>
-	<key>CFBundleExecutable</key>
-	<string>$(EXECUTABLE_NAME)</string>
-	<key>CFBundleIdentifier</key>
-	<string>com.ppapikey.mobile</string>
-	<key>CFBundleInfoDictionaryVersion</key>
-	<string>6.0</string>
-	<key>CFBundleName</key>
-	<string>ppapikey_mobile</string>
-	<key>CFBundlePackageType</key>
-	<string>APPL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>1.2.2</string>
-	<key>CFBundleSignature</key>
-	<string>????</string>
-	<key>CFBundleVersion</key>
-	<string>1</string>
-	<key>LSRequiresIPhoneOS</key>
-	<true/>
-	<key>UILaunchStoryboardName</key>
-	<string>LaunchScreen</string>
-	<key>UIMainStoryboardFile</key>
-	<string>Main</string>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
-	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<false/>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
-	<key>UIApplicationSupportsIndirectInputEvents</key>
-	<true/>
-	<key>ITSAppUsesNonExemptEncryption</key>
-	<false/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>com.ppapikey.mobile</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>ppapikey</string>
-			</array>
-		</dict>
-	</array>
-</dict>
-</plist>
+echo "🔍 CÁC BƯỚC KIỂM TRA DEVICE:"
+echo ""
+echo "1. KIỂM TRA DEVICE MANAGEMENT:"
+echo "   - Vào Settings → General → Device Management"
+echo "   - Kiểm tra có certificate nào không"
+echo "   - Nếu có, tap vào và chọn 'Trust'"
+echo ""
+echo "2. KIỂM TRA APP CŨ:"
+echo "   - Tìm app 'PPAPIKey Mobile' trên iPhone"
+echo "   - Nếu có, long press và chọn 'Delete App'"
+echo "   - Restart iPhone"
+echo ""
+echo "3. KIỂM TRA STORAGE:"
+echo "   - Vào Settings → General → iPhone Storage"
+echo "   - Đảm bảo có đủ dung lượng (ít nhất 100MB)"
+echo ""
+echo "4. KIỂM TRA INTERNET:"
+echo "   - Đảm bảo iPhone có kết nối internet"
+echo "   - Cần internet để verify certificate"
+echo ""
+echo "✅ Device check completed!"
 EOF
 
-# 3. Fix Runner.entitlements - minimal cho device installation
-echo "🔧 Fixing Runner.entitlements..."
-cat > ios/Runner/Runner.entitlements << 'EOF'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>get-task-allow</key>
-    <true/>
-</dict>
-</plist>
-EOF
+chmod +x check_device.sh
 
-# 4. Fix Podfile với cấu hình đúng cho device
-echo "🔧 Fixing Podfile..."
-cat > ios/Podfile << 'EOF'
-platform :ios, '12.0'
+# 2. Tạo script fix IPA
+echo "🔧 Tạo script fix IPA..."
+cat > fix_ipa.sh << 'EOF'
+#!/bin/bash
+echo "🔧 Fixing IPA for installation..."
 
-ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+# Tìm IPA file
+if [ -f "PPAPIKey_Mobile_Complete.ipa" ]; then
+    IPA_FILE="PPAPIKey_Mobile_Complete.ipa"
+elif [ -f "PPAPIKey_Mobile_Device.ipa" ]; then
+    IPA_FILE="PPAPIKey_Mobile_Device.ipa"
+elif [ -f "PPAPIKey_Mobile_unsigned.ipa" ]; then
+    IPA_FILE="PPAPIKey_Mobile_unsigned.ipa"
+else
+    echo "❌ Không tìm thấy IPA file"
+    exit 1
+fi
 
-project 'Runner', {
-  'Debug' => :debug,
-  'Profile' => :release,
-  'Release' => :release,
-}
+echo "📱 Found IPA: $IPA_FILE"
 
-def flutter_root
-  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
-  unless File.exist?(generated_xcode_build_settings_path)
-    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
-  end
+# Kiểm tra IPA
+echo "🔍 Checking IPA..."
+mkdir -p temp_check
+cd temp_check
+unzip -q ../$IPA_FILE
 
-  File.foreach(generated_xcode_build_settings_path) do |line|
-    matches = line.match(/FLUTTER_ROOT\=(.*)/)
-    return matches[1].strip if matches
-  end
-  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
-end
-
-require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
-
-flutter_ios_podfile_setup
-
-target 'Runner' do
-  use_frameworks!
-  use_modular_headers!
-
-  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-end
-
-post_install do |installer|
-  installer.pods_project.targets.each do |target|
-    flutter_additional_ios_build_settings(target)
+if [ -f "Payload/Runner.app/Info.plist" ]; then
+    BUNDLE_ID=$(plutil -p Payload/Runner.app/Info.plist | grep CFBundleIdentifier | cut -d'"' -f4)
+    echo "📋 Bundle ID: $BUNDLE_ID"
     
-    target.build_configurations.each do |config|
-      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '12.0'
-      config.build_settings['ENABLE_BITCODE'] = 'NO'
-      config.build_settings['STRIP_INSTALLED_PRODUCT'] = 'YES'
-      config.build_settings['COPY_PHASE_STRIP'] = 'NO'
-      config.build_settings['STRIP_STYLE'] = 'all'
-      config.build_settings['DEVELOPMENT_TEAM'] = ''
-      config.build_settings['CODE_SIGN_IDENTITY'] = ''
-      config.build_settings['CODE_SIGN_STYLE'] = 'Automatic'
-    end
-  end
-end
+    if [ "$BUNDLE_ID" != "com.ppapikey.mobile" ]; then
+        echo "⚠️ WARNING: Bundle ID không đúng!"
+        echo "   Cần: com.ppapikey.mobile"
+        echo "   Có: $BUNDLE_ID"
+    fi
+fi
+
+cd ..
+rm -rf temp_check
+
+echo "✅ IPA check completed!"
 EOF
 
-# 5. Get dependencies
-echo "📥 Getting dependencies..."
-flutter pub get
+chmod +x fix_ipa.sh
 
-# 6. Install iOS dependencies
-echo "🍎 Installing iOS dependencies..."
-cd ios
-pod install --repo-update
-cd ..
+# 3. Tạo hướng dẫn cài đặt chi tiết
+echo "📋 Tạo hướng dẫn cài đặt chi tiết..."
+cat > INSTALLATION_GUIDE.md << 'EOF'
+# Hướng dẫn cài đặt PPAPIKey Mobile trên iPhone
 
-# 7. Build for device (không phải simulator)
-echo "🏗️ Building for iOS Device..."
-flutter build ios --debug --no-pub --no-tree-shake-icons --verbose
+## 🚨 Lỗi "Không thể cài đặt app" - Giải pháp hoàn chỉnh
 
-echo "✅ COMPLETE FIX completed!"
+### 🔍 Nguyên nhân phổ biến:
+
+1. **App cũ tồn tại trên device**
+2. **Certificate không được trust**
+3. **Bundle ID không khớp**
+4. **Provisioning Profile không đúng**
+5. **Device UDID không có trong profile**
+
+### 🛠️ Giải pháp từng bước:
+
+#### **BƯỚC 1: Xóa app cũ (QUAN TRỌNG)**
+1. **Tìm app "PPAPIKey Mobile"** trên iPhone
+2. **Long press** vào app icon
+3. **Chọn "Delete App"**
+4. **Restart iPhone**
+
+#### **BƯỚC 2: Kiểm tra Device Management**
+1. **Vào Settings** → General → Device Management
+2. **Kiểm tra** có certificate nào không
+3. **Nếu có certificate:**
+   - Tap vào certificate
+   - Chọn "Trust [Certificate Name]"
+   - Confirm "Trust"
+
+#### **BƯỚC 3: Cài đặt IPA**
+1. **Download IPA** từ GitHub Actions
+2. **Upload lên eSign** để ký
+3. **Download IPA đã ký** từ eSign
+4. **Cài đặt IPA** trên iPhone
+
+#### **BƯỚC 4: Nếu vẫn lỗi**
+1. **Kiểm tra Apple ID** trong eSign còn active
+2. **Kiểm tra Device UDID** có trong Provisioning Profile
+3. **Thử ký với Apple ID khác**
+4. **Thử restart iPhone và máy tính**
+
+### ⚠️ Lưu ý quan trọng:
+
+1. **Free Apple ID:** App hết hạn sau 7 ngày
+2. **Paid Apple ID:** App hết hạn sau 1 năm
+3. **Cần internet** để verify certificate
+4. **Device phải được trust** máy tính
+
+### 🔍 Troubleshooting:
+
+#### **Lỗi "Untrusted Developer":**
+- Vào Settings → General → Device Management
+- Trust certificate của bạn
+
+#### **Lỗi "App cannot be installed":**
+- Xóa app cũ trên iPhone
+- Restart iPhone
+- Thử cài đặt lại
+
+#### **Lỗi "Provisioning Profile":**
+- Kiểm tra Device UDID có trong profile
+- Tạo Provisioning Profile mới
+- Thử Apple ID khác
+
+### 📞 Hỗ trợ:
+
+Nếu vẫn gặp vấn đề, hãy:
+1. **Kiểm tra Flutter SDK version**
+2. **Kiểm tra Xcode version**
+3. **Kiểm tra Apple Developer Account**
+4. **Thử restart máy tính**
+EOF
+
+echo "✅ Complete IPA installation fix completed!"
 echo ""
-echo "📋 CÁC BƯỚC TIẾP THEO ĐỂ CÀI ĐẶT TRÊN IPHONE:"
+echo "📋 CÁC FILE ĐÃ TẠO:"
+echo "1. check_device.sh - Kiểm tra device"
+echo "2. fix_ipa.sh - Fix IPA"
+echo "3. INSTALLATION_GUIDE.md - Hướng dẫn chi tiết"
 echo ""
-echo "🔧 PHƯƠNG PHÁP 1: Sử dụng Xcode (KHUYẾN NGHỊ)"
-echo "1. Mở Xcode: open ios/Runner.xcworkspace"
-echo "2. Trong Xcode:"
-echo "   - Chọn project 'Runner'"
-echo "   - Vào tab 'Signing & Capabilities'"
-echo "   - Check 'Automatically manage signing'"
-echo "   - Chọn Team của bạn (Apple Developer Account)"
-echo "   - Bundle ID sẽ tự động là com.ppapikey.mobile"
-echo "3. Kết nối iPhone vào máy tính"
-echo "4. Chọn iPhone làm target device"
-echo "5. Build và Run: Product → Build → Run"
-echo ""
-echo "🔧 PHƯƠNG PHÁP 2: Sử dụng AltStore/Sideloadly"
-echo "1. Build IPA: flutter build ipa --debug"
-echo "2. Sử dụng AltStore hoặc Sideloadly để cài đặt"
-echo "3. Cần Apple ID để ký app"
-echo ""
-echo "🔧 PHƯƠNG PHÁP 3: Sử dụng eSign"
-echo "1. Build IPA: flutter build ipa --debug --no-codesign"
-echo "2. Upload IPA lên eSign"
-echo "3. Ký và cài đặt qua eSign"
+echo "🛠️ CÁCH SỬ DỤNG:"
+echo "1. bash check_device.sh - Kiểm tra device"
+echo "2. bash fix_ipa.sh - Fix IPA"
+echo "3. Đọc INSTALLATION_GUIDE.md - Hướng dẫn chi tiết"
 echo ""
 echo "⚠️ LƯU Ý QUAN TRỌNG:"
-echo "1. Cần Apple Developer Account để cài đặt trên device"
-echo "2. Device phải được trust máy tính"
-echo "3. Nếu dùng free Apple ID, app sẽ hết hạn sau 7 ngày"
-echo "4. Nếu dùng paid Apple ID, app sẽ hết hạn sau 1 năm"
-echo ""
-echo "🔍 NẾU VẪN LỖI:"
-echo "1. Kiểm tra Apple Developer Account còn active không"
-echo "2. Kiểm tra Certificate còn hạn không"
-echo "3. Kiểm tra Provisioning Profile có đúng không"
-echo "4. Kiểm tra Device UDID có trong profile không"
-echo "5. Thử restart Xcode và clean build folder"
+echo "1. Xóa app cũ trên iPhone trước khi cài mới"
+echo "2. Trust certificate trong Device Management"
+echo "3. Đảm bảo Apple ID còn active"
+echo "4. Kiểm tra Device UDID có trong profile"
