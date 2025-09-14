@@ -31,7 +31,5 @@
     <false/>
     <key>stripDebugSymbols</key>
     <true/>
-    <key>teamID</key>
-    <string>YOUR_TEAM_ID</string>
 </dict>
 </plist>

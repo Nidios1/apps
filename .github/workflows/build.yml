@@ -14,11 +14,27 @@ jobs:
     - uses: subosito/flutter-action@v2
       with:
         flutter-version: '3.24.0'
+        cache: true
+        
+    - name: Setup CocoaPods
+      run: |
+        sudo gem install cocoapods
+        pod setup
+        
+    - name: Clean and prepare
+      run: |
+        flutter clean
+        flutter pub get
+        
+    - name: Install iOS dependencies
+      run: |
+        cd ios
+        pod install --repo-update --verbose
+        cd ..
         
     - name: Build iOS
       run: |
-        flutter pub get
-        flutter build ios --release --no-codesign --no-pub --no-tree-shake-icons
+        flutter build ios --release --no-codesign --no-pub --no-tree-shake-icons --verbose
         
     - name: Create IPA
       run: |
