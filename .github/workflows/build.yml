@@ -42,6 +42,21 @@ jobs:
         echo "Building iOS app for device..."
         flutter build ios --release --no-codesign --verbose
         
+    - name: Archive iOS App
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: |
+        echo "Archiving iOS app..."
+        cd ios
+        xcodebuild -workspace Runner.xcworkspace \
+          -scheme Runner \
+          -configuration Release \
+          -destination generic/platform=iOS \
+          -archivePath build/Runner.xcarchive \
+          archive \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+        
     - name: Verify Build Contents
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
@@ -51,17 +66,22 @@ jobs:
         ls -la build/ios/iphoneos/Runner.app/Frameworks/ || echo "Frameworks folder missing"
         ls -la build/ios/iphoneos/Runner.app/_CodeSignature/ || echo "CodeSignature folder missing"
         
-    - name: Create IPA from Device Build
+    - name: Create IPA from Archive
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        cd build/ios/iphoneos
-        mkdir -p Payload
-        cp -r Runner.app Payload/
-        echo "Contents of Payload before zipping:"
-        ls -la Payload/Runner.app/
-        zip -r ../../../ppapikey.ipa Payload/
-        rm -rf Payload
-        echo "IPA created successfully from device build"
+        echo "Creating IPA from archive..."
+        cd ios
+        xcodebuild -exportArchive \
+          -archivePath build/Runner.xcarchive \
+          -exportPath build/ipa \
+          -exportOptionsPlist ExportOptions.plist \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          CODE_SIGNING_ALLOWED=NO
+        
+        echo "Moving IPA to project root..."
+        cp build/ipa/Runner.ipa ../../ppapikey.ipa
+        echo "IPA created successfully"
         
     - name: Upload IPA
       uses: actions/upload-artifact@v4
