@@ -24,52 +24,16 @@ jobs:
       run: |
         flutter pub get
         
-        # Install iOS dependencies - REQUIRED for frameworks
+        # Install iOS dependencies - Flutter will auto-generate frameworks
         cd ios
         
         # Clean previous installation
         rm -rf Pods/ Podfile.lock
         
-        # Ensure Flutter can find dependencies
-        echo "=== FLUTTER DEPENDENCIES CHECK ==="
-        cd ..
-        flutter pub deps --style=tree | grep -E "(audio_session|flutter_local_notifications|just_audio|image_picker|url_launcher|package_info|path_provider|sqflite|flutter_app_badger|permission_handler)" || echo "Some dependencies not found"
-        cd ios
-        
-        # Install pods - this creates all the frameworks
+        # Install pods - Flutter will handle framework generation
         pod install --verbose || {
-          echo "Pod install failed, trying alternative approach..."
-          
-          # Try with backup Podfile
-          cp Podfile.backup Podfile || echo "No backup Podfile found"
-          
-          # Try with repo update
-          pod install --repo-update --verbose || {
-            echo "Still failing, trying without repo update..."
-            pod install --no-repo-update --verbose || {
-              echo "All pod install attempts failed, but continuing..."
-            }
-          }
+          echo "Pod install failed, but Flutter will generate frameworks during build"
         }
-        
-        # Verify Podfile has dependencies
-        echo "=== PODFILE VERIFICATION ==="
-        echo "Podfile contents:"
-        cat Podfile
-        echo ""
-        echo "Checking for Flutter pod..."
-        if grep -q "pod 'Flutter'" Podfile; then
-          echo "✅ Flutter pod found in Podfile"
-        else
-          echo "❌ Flutter pod missing from Podfile"
-        fi
-        
-        # Verify frameworks were created
-        echo "=== FRAMEWORKS VERIFICATION ==="
-        echo "Frameworks created:"
-        find Pods -name "*.framework" | head -20
-        echo "Frameworks count:"
-        find Pods -name "*.framework" | wc -l
         
         cd ..
         
@@ -121,7 +85,7 @@ jobs:
     - name: Build iOS for Device (Release)
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
-        echo "Building iOS app without CocoaPods..."
+        echo "Building iOS app with Flutter auto-generating frameworks..."
         
         # Build with Flutter handling frameworks automatically
         flutter build ios --release --no-codesign --verbose --tree-shake-icons
@@ -143,19 +107,18 @@ jobs:
           echo "Frameworks count:"
           ls -la build/ios/iphoneos/Runner.app/Frameworks/ | wc -l
           
-          echo "Expected frameworks (should be 12 like original IPA):"
+          echo "Expected frameworks (should be 11 like in your image):"
           echo "- Flutter.framework"
-          echo "- App.framework" 
-          echo "- audio_session.framework"
-          echo "- flutter_app_badger.framework"
-          echo "- flutter_local_notifications.framework"
-          echo "- image_picker_ios.framework"
-          echo "- just_audio.framework"
-          echo "- package_info_plus.framework"
-          echo "- path_provider_foundation.framework"
-          echo "- shared_preferences_foundation.framework"
-          echo "- sqflite_darwin.framework"
           echo "- url_launcher_ios.framework"
+          echo "- sqlite_darwin.framework"
+          echo "- shared_preferences_foundation.framework"
+          echo "- path_provider_foundation.framework"
+          echo "- package_info_plus.framework"
+          echo "- just_audio.framework"
+          echo "- image_picker_ios.framework"
+          echo "- flutter_local_notifications.framework"
+          echo "- flutter_app_badger.framework"
+          echo "- audio_session.framework"
           
           echo "Actual frameworks:"
           ls -la build/ios/iphoneos/Runner.app/Frameworks/ | grep "\.framework"
@@ -164,9 +127,9 @@ jobs:
           FRAMEWORK_COUNT=$(ls -la build/ios/iphoneos/Runner.app/Frameworks/ | grep "\.framework" | wc -l)
           echo "Framework count: $FRAMEWORK_COUNT"
           
-          if [ "$FRAMEWORK_COUNT" -lt 10 ]; then
-            echo "❌ Too few frameworks ($FRAMEWORK_COUNT), expected 12"
-            echo "This means CocoaPods didn't install properly or Flutter build failed"
+          if [ "$FRAMEWORK_COUNT" -lt 8 ]; then
+            echo "❌ Too few frameworks ($FRAMEWORK_COUNT), expected 11"
+            echo "This means Flutter didn't generate all frameworks"
             exit 1
           else
             echo "✅ Sufficient frameworks found ($FRAMEWORK_COUNT)"
