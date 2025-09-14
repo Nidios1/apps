@@ -36,19 +36,20 @@ jobs:
         pod install --repo-update --verbose
         cd ..
         
-    - name: Build iOS (Development)
+    - name: Build iOS (Unsigned for eSign)
       run: |
-        flutter build ios --debug --no-codesign --no-pub --no-tree-shake-icons --verbose
+        flutter build ios --release --no-codesign --no-pub --no-tree-shake-icons --verbose
         
-    - name: Create IPA (Development)
+    - name: Create IPA for eSign
       run: |
         cd build/ios/iphoneos
         mkdir Payload
         cp -r Runner.app Payload/
-        zip -r ../../../app-debug.ipa Payload/
+        zip -r ../../../PPAPIKey_Mobile_unsigned.ipa Payload/
+        cd ../../..
         
-    - name: Upload IPA
+    - name: Upload IPA for eSign
       uses: actions/upload-artifact@v4
       with:
-        name: ios-app-debug
-        path: app-debug.ipa
+        name: ios-app-unsigned-for-esign
+        path: PPAPIKey_Mobile_unsigned.ipa

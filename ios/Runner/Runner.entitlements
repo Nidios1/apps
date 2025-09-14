@@ -6,10 +6,6 @@
     <array>
         <string>$(AppIdentifierPrefix)com.ppapikey.dev</string>
     </array>
-    <key>com.apple.developer.team-identifier</key>
-    <string>YOUR_TEAM_ID</string>
-    <key>application-identifier</key>
-    <string>YOUR_TEAM_ID.com.ppapikey.dev</string>
     <key>get-task-allow</key>
     <true/>
     <key>aps-environment</key>

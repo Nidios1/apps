@@ -1,0 +1,87 @@
+name: ppapikey_mobile
+description: Flutter iOS app for API key management
+
+version: 1.2.2+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # UI - Essential only
+  cupertino_icons: ^1.0.2
+  
+  # HTTP requests - Core functionality
+  http: ^1.1.0
+  
+  # State management - Essential
+  provider: ^6.1.1
+  
+  # Local storage - Essential
+  shared_preferences: ^2.2.2
+  
+  # Database - Essential
+  sqflite: ^2.3.0
+  
+  # Internationalization - Essential
+  intl: ^0.19.0
+
+  # OPTIONAL - Comment out if not needed
+  # Notifications - Only if you need push notifications
+  # flutter_local_notifications: ^16.3.0
+  
+  # Audio - Only if you need audio features
+  # just_audio: ^0.9.36
+  # audio_session: ^0.1.16
+  
+  # Image picker - Only if you need camera/gallery
+  # image_picker: ^1.0.4
+  
+  # URL launcher - Only if you need to open external URLs
+  # url_launcher: ^6.2.2
+  
+  # Package info - Only if you need app info
+  # package_info_plus: ^4.2.0
+  
+  # Path provider - Only if you need file system access
+  # path_provider: ^2.1.1
+  
+  # App badge - Only if you need badge notifications
+  # flutter_app_badger: ^1.5.0
+  
+  # Permissions - Only if you need runtime permissions
+  # permission_handler: ^11.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/audio/
+    - assets/translations/
+    - assets/fonts/
+
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Roboto-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Roboto-Italic.ttf
+          style: italic
+    - family: MaterialIcons
+      fonts:
+        - asset: assets/fonts/MaterialIcons-Regular.otf

@@ -1,0 +1,31 @@
+// iOS Signing Configuration
+// This file configures code signing for the iOS app
+
+// Bundle Identifier - MUST match with Apple Developer Portal
+PRODUCT_BUNDLE_IDENTIFIER = com.ppapikey.dev
+
+// Code Signing Style - Use automatic for easier management
+CODE_SIGN_STYLE = Automatic
+
+// Development Team - Will be set automatically in Xcode
+DEVELOPMENT_TEAM = 
+
+// Code Sign Identity - Will be set automatically
+CODE_SIGN_IDENTITY = 
+
+// Provisioning Profile - Will be set automatically
+PROVISIONING_PROFILE_SPECIFIER = 
+
+// iOS Deployment Target
+IPHONEOS_DEPLOYMENT_TARGET = 12.0
+
+// Disable Bitcode for Flutter compatibility
+ENABLE_BITCODE = NO
+
+// Swift Language Version
+SWIFT_VERSION = 5.0
+
+// Build Settings for Flutter
+FLUTTER_BUILD_MODE = release
+FLUTTER_BUILD_NUMBER = 1
+FLUTTER_BUILD_NAME = 1.2.2
