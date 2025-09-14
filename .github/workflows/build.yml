@@ -24,9 +24,24 @@ jobs:
       run: |
         flutter pub get
         
-        # Install iOS dependencies
+        # Install iOS dependencies with proper CocoaPods setup
         cd ios
-        pod install
+        
+        # Clean previous installation
+        rm -rf Pods/ Podfile.lock
+        
+        # Install pods with verbose output
+        pod install --verbose
+        
+        # Verify installation
+        echo "=== COCOAPODS VERIFICATION ==="
+        echo "Pods installed:"
+        ls -la Pods/
+        echo "Frameworks count:"
+        find Pods -name "*.framework" | wc -l
+        echo "Frameworks list:"
+        find Pods -name "*.framework" | head -20
+        
         cd ..
         
     - name: Clean and prepare
@@ -76,6 +91,24 @@ jobs:
         echo "Checking Flutter dependencies..."
         flutter pub deps --style=tree | head -30
         
+    - name: Debug Flutter Build Process
+      working-directory: ./PPAPIKey_Mobile_Project
+      run: |
+        echo "=== FLUTTER BUILD DEBUG ==="
+        echo "Checking Flutter configuration..."
+        flutter config --list
+        
+        echo "Checking Flutter doctor..."
+        flutter doctor -v
+        
+        echo "Checking Flutter dependencies..."
+        flutter pub deps --style=tree | grep -E "(audio_session|flutter_local_notifications|just_audio|image_picker|url_launcher|package_info|path_provider|sqflite|flutter_app_badger|permission_handler)"
+        
+        echo "Checking iOS project structure..."
+        ls -la ios/
+        echo "Checking Podfile.lock..."
+        head -50 ios/Podfile.lock || echo "No Podfile.lock"
+        
     - name: Build iOS for Device (Release)
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
@@ -100,6 +133,23 @@ jobs:
           ls -la build/ios/iphoneos/Runner.app/Frameworks/
           echo "Frameworks count:"
           ls -la build/ios/iphoneos/Runner.app/Frameworks/ | wc -l
+          
+          echo "Expected frameworks (from pubspec.yaml):"
+          echo "- Flutter.framework"
+          echo "- App.framework" 
+          echo "- audio_session.framework"
+          echo "- flutter_app_badger.framework"
+          echo "- flutter_local_notifications.framework"
+          echo "- image_picker_ios.framework"
+          echo "- just_audio.framework"
+          echo "- package_info_plus.framework"
+          echo "- path_provider_foundation.framework"
+          echo "- shared_preferences_foundation.framework"
+          echo "- sqflite_darwin.framework"
+          echo "- url_launcher_ios.framework"
+          
+          echo "Actual frameworks:"
+          ls -la build/ios/iphoneos/Runner.app/Frameworks/ | grep "\.framework"
         else
           echo "❌ Frameworks directory missing!"
           exit 1
