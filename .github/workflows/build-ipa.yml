@@ -19,71 +19,20 @@ jobs:
         flutter-version: '3.24.0'
         cache: true
         
-    - name: Debug - List directory contents
-      run: |
-        echo "=== CURRENT DIRECTORY ==="
-        pwd
-        echo "=== DIRECTORY CONTENTS ==="
-        ls -la
-        echo "=== CHECKING FOR PUBSPEC.YAML ==="
-        if [ -f "pubspec.yaml" ]; then
-          echo "✅ pubspec.yaml found in root"
-          head -10 pubspec.yaml
-        else
-          echo "❌ pubspec.yaml NOT found in root"
-          echo "Looking for pubspec.yaml in subdirectories..."
-          find . -name "pubspec.yaml" -type f
-        fi
-        
-    - name: Setup CocoaPods
-      run: |
-        echo "=== SETTING UP COCOAPODS ==="
-        sudo gem install cocoapods
-        pod --version
-        
-    - name: Install dependencies
-      run: |
-        echo "=== INSTALLING DEPENDENCIES ==="
-        flutter pub get
-        
-        echo "=== INSTALLING iOS DEPENDENCIES ==="
-        cd ios
-        
-        # Clean previous installation
-        rm -rf Pods/ Podfile.lock
-        
-        # Install CocoaPods dependencies with error handling
-        echo "Installing CocoaPods dependencies..."
-        pod install --verbose || {
-          echo "Pod install failed, trying alternative approach..."
-          pod repo update
-          pod install --verbose --allow-warnings || {
-            echo "Pod install still failed, continuing with Flutter build..."
-            echo "Flutter will handle framework generation during build"
-          }
-        }
-        
-        cd ..
-        
-    - name: Build iOS for Device (Release)
+    - name: Build iOS App
       run: |
         echo "=== BUILDING iOS APP ==="
-        flutter build ios --release --no-codesign --verbose --tree-shake-icons
+        flutter pub get
+        flutter build ios --release --no-codesign
         
-        echo "=== BUILD VERIFICATION ==="
-        ls -la build/ios/iphoneos/Runner.app/
-        
-    - name: Create IPA from App Bundle
-      run: |
         echo "=== CREATING IPA ==="
         cd build/ios/iphoneos
-        
         mkdir -p Payload
         cp -r Runner.app Payload/
         zip -r ../../../ppapikey.ipa Payload/
         rm -rf Payload
         
-        echo "=== IPA CREATED ==="
+        echo "=== BUILD COMPLETED ==="
         ls -lh ../../../ppapikey.ipa
         
     - name: Upload IPA
