@@ -1,11 +1,12 @@
-name: iOS Build
+name: iOS Build for eSign
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  build:
+  build-esign:
     runs-on: macos-latest
     
     steps:
@@ -36,20 +37,3 @@ jobs:
         pod install --repo-update --verbose
         cd ..
         
-    - name: Build iOS (Unsigned for eSign)
-      run: |
-        flutter build ios --release --no-codesign --no-pub --no-tree-shake-icons --verbose
-        
-    - name: Create IPA for eSign
-      run: |
-        cd build/ios/iphoneos
-        mkdir Payload
-        cp -r Runner.app Payload/
-        zip -r ../../../PPAPIKey_Mobile_unsigned.ipa Payload/
-        cd ../../..
-        
-    - name: Upload IPA for eSign
-      uses: actions/upload-artifact@v4
-      with:
-        name: ios-app-unsigned-for-esign
-        path: PPAPIKey_Mobile_unsigned.ipa
