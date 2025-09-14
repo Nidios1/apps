@@ -52,13 +52,26 @@ jobs:
         echo "Creating IPA file..."
         cd build/ios/iphoneos
         
+        # Verify Runner.app exists
+        if [ ! -d "Runner.app" ]; then
+          echo "❌ Runner.app not found!"
+          ls -la
+          exit 1
+        fi
+        
         # Create Payload directory
         mkdir -p Payload
         
         # Copy Runner.app to Payload
+        echo "Copying Runner.app to Payload..."
         cp -r Runner.app Payload/
         
+        # Verify structure
+        echo "Payload structure:"
+        ls -la Payload/
+        
         # Create IPA
+        echo "Creating IPA file..."
         zip -r ../../../PPAPIKey_Mobile.ipa Payload/
         
         cd ../../..
@@ -67,6 +80,7 @@ jobs:
         if [ -f "PPAPIKey_Mobile.ipa" ]; then
           echo "✅ IPA created successfully"
           ls -lh PPAPIKey_Mobile.ipa
+          echo "IPA file size: $(du -h PPAPIKey_Mobile.ipa | cut -f1)"
         else
           echo "❌ IPA creation failed"
           exit 1
@@ -144,6 +158,9 @@ jobs:
         - Restart device if installation fails
         EOF
         
+        echo "✅ Installation guide created successfully"
+        ls -lh INSTALLATION_GUIDE.md
+        
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
@@ -156,4 +173,13 @@ jobs:
       with:
         name: installation-guide
         path: INSTALLATION_GUIDE.md
+        retention-days: 30
+        
+    - name: Upload both files together
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-app-complete
+        path: |
+          PPAPIKey_Mobile.ipa
+          INSTALLATION_GUIDE.md
         retention-days: 30
