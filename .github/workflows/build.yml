@@ -50,6 +50,20 @@ jobs:
         echo "Checking assets:"
         ls -la assets/ || echo "No assets directory"
         
+    - name: Setup CocoaPods
+      run: |
+        echo "Setting up CocoaPods environment..."
+        
+        # Install specific Ruby version for stability
+        rbenv install 3.1.0 || true
+        rbenv global 3.1.0 || true
+        
+        # Install CocoaPods with specific version
+        gem install cocoapods --version 1.15.2 --no-document
+        
+        # Verify installation
+        pod --version
+        
     - name: Install iOS dependencies
       working-directory: ./PPAPIKey_Mobile_Project
       run: |
@@ -59,9 +73,30 @@ jobs:
         echo "Installing CocoaPods dependencies..."
         cd ios
         
-        # Clean and reinstall pods for iOS 18 compatibility
-        rm -rf Pods/ Podfile.lock
-        pod install --repo-update --verbose
+        # Clean everything for fresh install
+        rm -rf Pods/ Podfile.lock .symlinks/
+        
+        # Install pods with comprehensive error handling
+        echo "Installing pods..."
+        pod install --repo-update --verbose || {
+          echo "First pod install failed, trying alternative approach..."
+          
+          # Try with simplified Podfile
+          cp ../Podfile.backup Podfile || echo "No backup Podfile found"
+          
+          pod deintegrate || true
+          pod setup || true
+          pod install --repo-update --verbose || {
+            echo "Pod install still failing, trying without repo update..."
+            pod install --verbose || {
+              echo "All pod install attempts failed, trying minimal approach..."
+              pod install --no-repo-update --verbose || {
+                echo "Final attempt with basic pod install..."
+                pod install
+              }
+            }
+          }
+        }
         
         echo "Verifying pod installation..."
         pod list | head -20
