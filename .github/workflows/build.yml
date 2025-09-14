@@ -26,6 +26,10 @@ jobs:
         flutter clean
         flutter pub get
         
+    - name: Generate Flutter iOS files
+      run: |
+        flutter precache --ios
+        
     - name: Install iOS dependencies
       run: |
         cd ios
