@@ -30,9 +30,18 @@ jobs:
         # Clean previous installation
         rm -rf Pods/ Podfile.lock
         
+        # Ensure Flutter can find dependencies
+        echo "=== FLUTTER DEPENDENCIES CHECK ==="
+        cd ..
+        flutter pub deps --style=tree | grep -E "(audio_session|flutter_local_notifications|just_audio|image_picker|url_launcher|package_info|path_provider|sqflite|flutter_app_badger|permission_handler)" || echo "Some dependencies not found"
+        cd ios
+        
         # Install pods - this creates all the frameworks
         pod install --verbose || {
           echo "Pod install failed, trying alternative approach..."
+          
+          # Try with backup Podfile
+          cp Podfile.backup Podfile || echo "No backup Podfile found"
           
           # Try with repo update
           pod install --repo-update --verbose || {
@@ -42,6 +51,18 @@ jobs:
             }
           }
         }
+        
+        # Verify Podfile has dependencies
+        echo "=== PODFILE VERIFICATION ==="
+        echo "Podfile contents:"
+        cat Podfile
+        echo ""
+        echo "Checking for Flutter pod..."
+        if grep -q "pod 'Flutter'" Podfile; then
+          echo "✅ Flutter pod found in Podfile"
+        else
+          echo "❌ Flutter pod missing from Podfile"
+        fi
         
         # Verify frameworks were created
         echo "=== FRAMEWORKS VERIFICATION ==="
