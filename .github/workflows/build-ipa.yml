@@ -20,7 +20,6 @@ jobs:
         cache: true
         
     - name: Install dependencies
-      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         flutter pub get
         
@@ -36,14 +35,12 @@ jobs:
         cd ..
         
     - name: Clean and prepare
-      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         flutter clean
         flutter pub get
         flutter packages get
         
     - name: Verify Flutter configuration
-      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Flutter doctor:"
         flutter doctor -v
@@ -63,7 +60,6 @@ jobs:
         ls -la assets/ || echo "No assets directory"
         
     - name: Pre-build verification
-      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "=== PRE-BUILD VERIFICATION ==="
         echo "Checking Flutter configuration..."
@@ -81,7 +77,6 @@ jobs:
         flutter pub deps --style=tree | head -30
         
     - name: Build iOS for Device (Release)
-      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Building iOS app with CocoaPods dependencies..."
         
@@ -150,7 +145,6 @@ jobs:
         ls -la build/ios/iphoneos/Runner.app/AppIcon*.png || echo "App icons missing"
         
     - name: Verify Build Contents
-      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Checking build contents..."
         ls -la build/ios/iphoneos/Runner.app/
@@ -159,7 +153,6 @@ jobs:
         ls -la build/ios/iphoneos/Runner.app/_CodeSignature/ || echo "CodeSignature folder missing"
         
     - name: Create IPA from App Bundle
-      working-directory: ./PPAPIKey_Mobile_Project
       run: |
         echo "Creating IPA to match original structure..."
         cd build/ios/iphoneos
@@ -227,5 +220,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ppapikey-ipa
-        path: PPAPIKey_Mobile_Project/ppapikey.ipa
+        path: ppapikey.ipa
         retention-days: 30
